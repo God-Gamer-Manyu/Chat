@@ -19,6 +19,7 @@ import aichat
 from Utility import DataStorePath
 
 # todo: comment document and fix light warnings
+# TODO: Remove storage files as it reflects while building exe
 ####################
 def print(*args, **kwargs):
     # Converting anything other than string to string
