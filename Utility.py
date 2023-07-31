@@ -75,6 +75,7 @@ class SoundManager:
     @staticmethod
     def play(address):
 
+        # Todo fix the sound error
         def playsound(ads):
             sound = AudioSegment.from_file(ads, format='wav')
             play(sound)
