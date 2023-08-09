@@ -1,16 +1,19 @@
 #########################
 from __future__ import print_function
 import builtins as __builtin__
+import shutil
 #######################
 
-# todo: comment document and fix light warnings
+# later: comment document and fix light warnings
 # packages
 import socket
 import threading
+from tkinter import filedialog
+
 import customtkinter
 from PIL import ImageTk, Image
 import datetime
-import rsa  # for encrypting more data symmetrical encryption can be done which will be done later
+import rsa  # for encrypting
 from cryptography.fernet import Fernet
 import pickle
 import time
@@ -52,6 +55,7 @@ SOUND_EFFECTS = Utility.SOUND_EFFECTS
 PIX_LINE = 15
 BORDER_PIX = 44
 MESSAGE_LINE_LENGTH = 141
+IMAGES_FOLD_PATH = 'Resources/images/'
 
 # decryption keys
 public_key, private_key = rsa.newkeys(1024)
@@ -65,10 +69,11 @@ def clamp(value, min_value, max_value):
 class ChatWindow:
     # User message template
     class User:
-        def __init__(self, message, message_area, profile_address):
+        def __init__(self, message, message_area, profile_address, mainframe=None):
             self.message = message
             self.message_area = message_area
             self.profile_address = profile_address
+            self.mainframe = mainframe
 
         def size_h(self):  # Determines the relative size of message widget
             # Adjustment values
@@ -144,6 +149,68 @@ class ChatWindow:
                 font=FONT["t_stamp"],
             )
             us_time.place(x=mes_y - 30, y=mes_h + 12)
+
+        def draw_pic(self, file_path, current_time=""):
+            Utility.SoundManager.play(SOUND_EFFECTS["send"])
+            print('hello')
+
+            mes_h, mes_y = self.size_h()  # Getting the desired height
+            # message holder #size_x - 325
+            us_mes = customtkinter.CTkFrame(
+                master=self.message_area,
+                border_width=1,
+            )
+            us_mes.pack(anchor="e")
+
+            # show the full pic in image viewer
+            def show():
+                image_holder = customtkinter.CTkFrame(self.mainframe, 985, 600)
+                image_holder.pack_propagate(False)
+                image_holder.place(relx=.185, rely=0.01)
+                img = customtkinter.CTkLabel(image_holder, text='', image=ImageTk.PhotoImage(Image.open(file_path)))
+                img.pack(anchor='center', pady=15, padx=15)
+
+                # close the image viewer
+                def close():
+                    image_holder.destroy()
+
+                close_img = ImageTk.PhotoImage(Image.open(IMAGES['close']).resize((30, 30)))
+                close_btn = customtkinter.CTkButton(master=image_holder, text='', command=close, width=35, image=close_img, corner_radius=8)
+                close_btn.place(relx=0.95, rely=0.02)
+
+            image = ImageTk.PhotoImage(Image.open(file_path).resize((100, 100)))
+            # display image as message
+            us_pic = customtkinter.CTkButton(
+                master=us_mes,
+                image=image,
+                corner_radius=2,
+                width=100,
+                height=100,
+                text='',
+                command=show,
+                fg_color='transparent'
+            )
+            us_pic.grid(row=0, column=1, padx=(0, 10), pady=(15, 5), sticky='ne')
+
+            # display profile pic
+            us_img = customtkinter.CTkImage(Image.open(self.profile_address))
+            us_img_l = customtkinter.CTkLabel(
+                master=us_mes, image=us_img, width=30, height=30, text=""
+            )
+            us_img_l.grid(row=0, column=0, padx=(10, 0), pady=15, sticky='nw')
+
+            # display current_time stamp
+            if current_time == "":
+                current_time = str(datetime.datetime.now())
+            current_time = current_time.replace('/', ':')
+            us_time = customtkinter.CTkLabel(
+                master=us_mes,
+                text=current_time[:-10],
+                width=30,
+                height=10,
+                font=FONT["t_stamp"],
+            )
+            us_time.grid(row=1, column=1, padx=10, pady=5, sticky='e')
 
     # other client message template
     class Cl:
@@ -381,7 +448,7 @@ class ChatWindow:
             print("previous cons", rec)
             conversation_ser.append(rec)
 
-        # Todo: create functionality which will load the latest image of a client (if required, may be done automatically)
+        # later: create functionality which will load the latest image of a client (if required, may be done automatically)
         # appending missed conversation which were not saved
         for i in conversation_ser:
             if self.conversation:
@@ -408,13 +475,13 @@ class ChatWindow:
 
         # TODO: make ui grid and make it scalable
         # Main placeholder
-        frame = customtkinter.CTkFrame(
+        self.frame = customtkinter.CTkFrame(
             master=bg_l1, width=size_x - 50, height=size_y - 50, corner_radius=15
         )
-        frame.place(relx=0.5, rely=0.5, anchor=customtkinter.CENTER)
+        self.frame.place(relx=0.5, rely=0.5, anchor=customtkinter.CENTER)
 
         # header
-        head_frame = customtkinter.CTkFrame(master=master, width=1229, height=40)
+        head_frame = customtkinter.CTkFrame(master=bg_l1, width=1229, height=40)
         head_frame.place(relx=0.5, rely=0, anchor=customtkinter.N)
         rule_disp = customtkinter.CTkLabel(
             master=head_frame,
@@ -460,8 +527,8 @@ class ChatWindow:
 
         # input field
         self.input_box = customtkinter.CTkEntry(
-            master=frame,
-            width=size_x - 130,
+            master=self.frame,
+            width=size_x - 170,
             placeholder_text="Type Here",
             font=FONT["Comic"],
         )
@@ -469,13 +536,13 @@ class ChatWindow:
 
         # message holder
         self.message_area = customtkinter.CTkScrollableFrame(
-            master=frame, width=size_x - 315, height=size_y - 135
+            master=self.frame, width=size_x - 315, height=size_y - 135
         )
         self.message_area.place(x=225, y=15)
 
         # User holder
         user_head = customtkinter.CTkLabel(
-            master=frame,
+            master=self.frame,
             width=30,
             height=30,
             font=FONT["Oth_uname"],
@@ -483,7 +550,7 @@ class ChatWindow:
         )
         user_head.place(x=55, y=15)
         self.user_area = customtkinter.CTkScrollableFrame(
-            master=frame, width=175, height=size_y - 165
+            master=self.frame, width=175, height=size_y - 165
         )
         self.user_area.place(x=25, y=45)
 
@@ -511,7 +578,7 @@ class ChatWindow:
         # sent button
         enter_img = customtkinter.CTkImage(Image.open(IMAGES['send']))
         enter = customtkinter.CTkButton(
-            master=frame,
+            master=self.frame,
             width=30,
             corner_radius=5,
             command=self.send_message,
@@ -521,6 +588,14 @@ class ChatWindow:
         enter.place(x=size_x - 100, y=size_y - 100)
 
         master.bind("<Return>", self.send_message)  # Enter button function
+
+        # image attach button
+        attach_img = ImageTk.PhotoImage(Image.open(IMAGES['attachment']).resize((25, 25)))
+        img_attach_btn = customtkinter.CTkButton(self.frame, width=30, image=attach_img,
+                                                corner_radius=5,
+                                                command=self.send_pic,
+                                                text="")
+        img_attach_btn.place(x=size_x - 140, y=size_y - 100)
 
         # display initial message
         cl = self.Cl(self.message_area, self.user_area, self.clients_widgets)
@@ -706,6 +781,20 @@ class ChatWindow:
                 CLIENT_SOCKET.send(rsa.encrypt(i.encode("utf-8"), self.public_partner))
                 time.sleep(0.05)
             self.input_box.delete(0, customtkinter.END)
+
+    # urgent: write code to actually send image to server and receive
+    def send_pic(self):
+        file_path = filedialog.askopenfilename()
+        if file_path:
+            img = Image.open(file_path)
+            save_path = STORE_PATH + '\\' + IMAGES_FOLD_PATH.replace('/','\\') + str(datetime.datetime.now()).replace(':', '.') + '.png'
+            print(save_path)
+            img.save(save_path)
+            img.close()
+
+            # display the message to the user
+            user = self.User('', self.message_area, self.profile_address, self.frame)
+            user.draw_pic(save_path)
 
     def close_window(self):
         # Disconnect from the server and exit the application
