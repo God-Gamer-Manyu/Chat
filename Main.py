@@ -18,8 +18,8 @@ import Utility
 import aichat
 from Utility import DataStorePath
 
-# later: comment document and fix light warnings
-# urgent: Remove storage files as it reflects while building exe
+# todo: comment document and fix light warnings
+# TODO: Remove storage files as it reflects while building exe
 ####################
 def print(*args, **kwargs):
     # Converting anything other than string to string
@@ -64,20 +64,16 @@ class Main:
             key = file_key.read()
         # using the generated key
         fernet = Fernet(key)
-        # imp: while building for production you can uncomment this line
-        u_name = os.path.join(STORE_PATH, MEMORY['u_name'])
-        if os.path.isfile(u_name) and username == '':
-            file = open(u_name, 'rb')
-            line = file.read()
-            line = fernet.decrypt(line).decode()
-            line = line.split(':')
-            print(line)
-            username = line[0]
-            password = line[1]
-            if len(line) == 4:
-                profile_address = line[2] + ':' + line[3]  # because path goes like C:\\
-            else:
-                profile_address = line[2]
+        # TODO: while building for production you can uncomment this line
+        # u_name = os.path.join(STORE_PATH, MEMORY['u_name'])
+        # if os.path.isfile(u_name) and username == '':
+        #     file = open(u_name, 'rb')
+        #     line = file.read()
+        #     line = fernet.decrypt(line).decode()
+        #     line = line.split(':')
+        #     username = line[0]
+        #     password = line[1]
+        #     profile_address = line[2] + ':' + line[3]  # because path goes like C:\\
 
         # load conversation from file
         memory = os.path.join(STORE_PATH, MEMORY['cons'])
@@ -117,7 +113,7 @@ class Main:
 
         frame = customtkinter.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15)
         frame.place(relx=.5, rely=.5, anchor=customtkinter.CENTER)
-        #frame.grid_propagate(False)  # Fix the size
+        frame.grid_propagate(False)  # Fix the size
 
         # logo
         logo_img = ImageTk.PhotoImage(Image.open(IMAGES['logo_png']).resize((270, 270)))
@@ -153,6 +149,7 @@ class Main:
 
         label = customtkinter.CTkLabel(master=frame, width=100, height=50, text='CHAT WITH', font=FONT['Button'], anchor='center')
         label.grid(column=0, row=1, padx=25, pady=(5, 15), sticky='n')
+        frame.grid_propagate(False)  # Fix the size
         # AI button
         ai_btn = customtkinter.CTkButton(master=frame, width=150, height=50, text='AI', font=FONT['Button'], anchor='center', command=ai)
         ai_btn.grid(column=0, row=2, padx=25, pady=15, sticky='n')
@@ -161,7 +158,7 @@ class Main:
         friend_btn = customtkinter.CTkButton(master=frame, width=150, height=50, text='FRIENDS', font=FONT['Button'], anchor='center', command=friends)
         friend_btn.grid(column=0, row=3, padx=25, pady=15, sticky='n')
 
-        # later: create profile frame with animation, etc, which allows user to change profile pic and username
+        # Todo: create profile frame with animation, etc, which allows user to change profile pic and username
         print(self.profile_address)
         profile_pic = customtkinter.CTkImage(Image.open(self.profile_address))
         self.profile_btn = customtkinter.CTkButton(master=bg_l1, width=40, height=40, text='', font=FONT['Button'], image=profile_pic, corner_radius=5, anchor='center', command=self.profile_get)
@@ -201,7 +198,7 @@ class Main:
     def login(self, bg_l1, app):
         frame = customtkinter.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15)
         frame.place(relx=.5, rely=.5, anchor=customtkinter.CENTER)
-        #frame.grid_propagate(False)  # Fix the size
+        frame.grid_propagate(False)  # Fix the size
 
         # logo
         logo_img = ImageTk.PhotoImage(Image.open(IMAGES['logo_png']).resize((270, 270)))
@@ -298,7 +295,7 @@ class Main:
     def sign_up(self, bg_l1):
         frame = customtkinter.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15)
         frame.place(relx=.5, rely=.5, anchor=customtkinter.CENTER)
-        #frame.grid_propagate(False)  # Fix the size
+        frame.grid_propagate(False)  # Fix the size
 
         # logo
         logo_img = ImageTk.PhotoImage(Image.open(IMAGES['logo_png']).resize((270, 270)))

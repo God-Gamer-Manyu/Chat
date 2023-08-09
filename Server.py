@@ -3,7 +3,7 @@ import threading
 import rsa
 import pickle
 import time
-# later: comment document and fix light warnings
+# todo: comment document and fix light warnings
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # for encryption

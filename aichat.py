@@ -9,7 +9,7 @@ import time
 
 import Main
 import Utility
-# later: comment document and fix light warnings
+# todo: comment document and fix light warnings
 # Global variables
 # Fonts
 FONT = Utility.FONT
@@ -26,7 +26,7 @@ BORDER_PIX = 44
 # method which gets the output from open AI
 def ask_openai(prompt):
     try:
-        # imp: get new upi and try using env format
+        # TODO: get new upi and try using env format
         openai.api_key = "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"
 
         # start_sequence = "\nAI:"
@@ -94,7 +94,7 @@ class AiChat:
         bg_l1 = customtkinter.CTkLabel(master=app, image=bg_img, text='')
         bg_l1.pack()
 
-        # todo: Make ui grid and make them scalable
+        # TODO: Make ui grid and make them scalable
         # Main placeholder
         frame = customtkinter.CTkFrame(master=bg_l1, width=size_x - 50, height=size_y - 50, corner_radius=15)
         frame.place(relx=.5, rely=.5, anchor=tkinter.CENTER)
