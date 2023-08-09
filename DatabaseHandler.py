@@ -1,5 +1,5 @@
 import pymysql
-# todo: comment document and fix light warnings
+# later: comment document and fix light warnings
 TABLE_NAME = 'User'
 CHAR_LEN = 50
 db = pymysql.connect(

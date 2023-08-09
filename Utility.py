@@ -1,13 +1,19 @@
 import os
 import threading
 
+import pygame
+import sounddevice as sd
+from scipy.io.wavfile import read
+
 from pydub import AudioSegment
 from pydub.playback import play
-# todo: comment document and fix light warnings
+# later: comment document and fix light warnings
 ###################
 import customtkinter as ctk
 import CTkListbox
 ###################
+
+pygame.mixer.init() # initialising pygame
 
 # Sound effects
 SOUND_EFFECTS = {
@@ -31,7 +37,9 @@ IMAGES = {'favicon': 'Resources/images/favicon.ico',
           'bg': 'Resources/images/Bg_image.jpg',
           'bot': 'Resources/images/bot.png',
           'send': 'Resources/images/send.png',
-          'user': 'Resources/images/user.png'}
+          'user': 'Resources/images/user.png',
+          'attachment': 'Resources/images/attachment.png',
+          'close': 'Resources/images/close.png'}
 # Fonts
 FONT = {
     "Comic": ("Comic Sans MS", 13),
@@ -53,7 +61,7 @@ class DataStorePath:
     def get_appdata():
         appdata_path = os.getenv('APPDATA')
         path = os.path.join(appdata_path, 'Intelli Chat')  # Generate corresponding path
-        print(path)  # displaying it for developer to know where it is stored
+        print('File stored in', path)  # displaying it for developer to know where it is stored
         if not os.path.exists(path):  # create intelli chart main folder in appdata
             os.mkdir(path)
         res_path = os.path.join(appdata_path, 'Intelli Chat', 'Resources')  # Generate corresponding path
@@ -74,14 +82,8 @@ class DataStorePath:
 class SoundManager:
     @staticmethod
     def play(address):
-
-        # Todo fix the sound error
-        def playsound(ads):
-            sound = AudioSegment.from_file(ads, format='wav')
-            play(sound)
-
-        p1 = threading.Thread(target=playsound, args=(address,))
-        p1.start()
+        sound = pygame.mixer.Sound(address)
+        sound.play()
 
     @staticmethod
     def quit():
