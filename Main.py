@@ -6,9 +6,10 @@ import builtins as __builtin__
 import os
 import shutil
 import socket
+from tkinter import PhotoImage
 
 import customtkinter
-from PIL import ImageTk, Image
+from PIL import Image
 from cryptography.fernet import Fernet
 from customtkinter import filedialog
 
@@ -20,18 +21,21 @@ from Utility import DataStorePath
 
 # later: comment document and fix light warnings
 # urgent: Remove storage files as it reflects while building exe
+# imp: change 'import customtkinter' to 'from customtkinter import *' and other import statements too
 ####################
+
+
 def print(*args, **kwargs):
     # Converting anything other than string to string
-    l = []
+    values = []
     for i in args:
         try:
             s = str(i)
-            l.append(s)
+            values.append(s)
         except Exception:
-            l.append(i)
+            values.append(i)
     # Appending the log to list
-    Utility.LogCollect.add((' '.join(l), str(**kwargs)))
+    Utility.LogCollect.add((' '.join(values), str(**kwargs)))
     return __builtin__.print(*args, **kwargs)
 #######################
 
@@ -52,6 +56,8 @@ IMAGES_FOLD_PATH = 'Resources/images/'
 IMAGES = Utility.IMAGES
 # stored files
 MEMORY = Utility.MEMORY
+# resize bg to fixed size
+BG_SIZE = Utility.BG_IMG_SIZE
 
 
 class Main:
@@ -65,19 +71,19 @@ class Main:
         # using the generated key
         fernet = Fernet(key)
         # imp: while building for production you can uncomment this line
-        u_name = os.path.join(STORE_PATH, MEMORY['u_name'])
-        if os.path.isfile(u_name) and username == '':
-            file = open(u_name, 'rb')
-            line = file.read()
-            line = fernet.decrypt(line).decode()
-            line = line.split(':')
-            print(line)
-            username = line[0]
-            password = line[1]
-            if len(line) == 4:
-                profile_address = line[2] + ':' + line[3]  # because path goes like C:\\
-            else:
-                profile_address = line[2]
+        # u_name = os.path.join(STORE_PATH, MEMORY['u_name'])
+        # if os.path.isfile(u_name) and username == '':
+        #     file = open(u_name, 'rb')
+        #     line = file.read()
+        #     line = fernet.decrypt(line).decode()
+        #     line = line.split(':')
+        #     print(line)
+        #     username = line[0]
+        #     password = line[1]
+        #     if len(line) == 4:
+        #         profile_address = line[2] + ':' + line[3]  # because path goes like C:\\
+        #     else:
+        #         profile_address = line[2]
 
         # load conversation from file
         memory = os.path.join(STORE_PATH, MEMORY['cons'])
@@ -102,11 +108,29 @@ class Main:
         app.iconbitmap(IMAGES['logo_ico'])
         app.wm_iconbitmap(IMAGES['logo_ico'])
 
-        # BG
-        bg_img = ImageTk.PhotoImage(Image.open(IMAGES['bg']))
-        # noinspection PyTypeChecker
+        # urgent check Background with teacher
+
+        path = IMAGES['bg']#"Resources/images/wp2757834-wallpaper-gif.gif"
+        print(path[-3:])
+        bg_img = Image.open(IMAGES['bg'])
+        bg_img = customtkinter.CTkImage(bg_img, size=BG_SIZE)
         bg_l1 = customtkinter.CTkLabel(master=app, image=bg_img, text='')
-        bg_l1.pack()
+        bg_l1.pack(fill='both', expand=True)
+
+        frame = customtkinter.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15)
+        frame.place(relx=.5, rely=.5, anchor=customtkinter.CENTER)
+        frame.grid_propagate(False)  # Fix the size
+
+        # imp giff lags check with ma'am whether to put or not
+        if path[-3] in 'gif':
+            bg_l1.destroy()
+            bg_l1 = customtkinter.CTkCanvas(app)
+            Utility.Gif.play(path, bg_l1, app)
+            bg_l1.pack(fill='both', expand=True)
+
+            frame = customtkinter.CTkFrame(master=bg_l1, width=300, height=500)#corner_radius=15
+            bg_l1.create_window(SIZE_X/2+150, SIZE_Y/2+150,window=frame)
+            frame.grid_propagate(False)  # Fix the size
 
         #####################################################################
         '''For Debug purpose'''
@@ -115,13 +139,10 @@ class Main:
         console_checkbox.place(relx=.015, rely=.015, anchor=customtkinter.CENTER)
         #################################################################################
 
-        frame = customtkinter.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15)
-        frame.place(relx=.5, rely=.5, anchor=customtkinter.CENTER)
-        #frame.grid_propagate(False)  # Fix the size
-
         # logo
-        logo_img = ImageTk.PhotoImage(Image.open(IMAGES['logo_png']).resize((270, 270)))
-        label_logo = customtkinter.CTkLabel(master=frame, width=100, height=100, text='', image=logo_img, anchor='center')
+        logo_img = Image.open(IMAGES['logo_png'])
+        logo_img = customtkinter.CTkImage(logo_img, size=(216, 216))
+        label_logo = customtkinter.CTkLabel(master=frame, text='', image=logo_img, anchor='center')
         label_logo.grid(column=0, row=0, padx=42, pady=(10, 5), sticky='n')
 
         def ai():
@@ -201,10 +222,11 @@ class Main:
     def login(self, bg_l1, app):
         frame = customtkinter.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15)
         frame.place(relx=.5, rely=.5, anchor=customtkinter.CENTER)
-        #frame.grid_propagate(False)  # Fix the size
+        frame.grid_propagate(False)  # Fix the size
 
         # logo
-        logo_img = ImageTk.PhotoImage(Image.open(IMAGES['logo_png']).resize((270, 270)))
+        logo_img = Image.open(IMAGES['logo_png'])
+        logo_img = customtkinter.CTkImage(logo_img, size=(216, 216))
         label_logo = customtkinter.CTkLabel(master=frame, width=100, height=100, text='', image=logo_img,
                                             anchor='center')
         label_logo.grid(column=0, row=0, padx=42, pady=(10, 0), sticky='n')
@@ -214,17 +236,17 @@ class Main:
         label.grid(column=0, row=1, sticky='n')
 
         # display login errors
-        login_error = customtkinter.CTkLabel(master=frame, width=100, height=50, text='Kindly enter your ID and password', font=FONT['error'], anchor='center')
-        login_error.grid(column=0, row=4, sticky='n')
+        login_mes = customtkinter.CTkLabel(master=frame, width=100, height=50, text='Kindly enter your ID and password', font=FONT['error'], anchor='center')
+        login_mes.grid(column=0, row=4, sticky='n')
 
         # username
-        entry = customtkinter.CTkEntry(master=frame, width=280, height=50, placeholder_text='username', font=FONT['In_field'], validate="key", validatecommand=(root.register(self.validate_input), "%P"))
+        entry = customtkinter.CTkEntry(master=frame, width=280, height=50, placeholder_text='username', font=FONT['In_field'], validate="key", validatecommand=(app.register(self.validate_input), "%P"))
         entry.grid(column=0, row=2, pady=(0, 5), sticky='n')
 
         # password
         pass_frame = customtkinter.CTkFrame(master=frame, fg_color='transparent')
         pass_frame.grid(column=0, row=3, sticky='n')
-        entry_pass = customtkinter.CTkEntry(master=pass_frame, width=230, height=50, placeholder_text='password', font=FONT['In_field'], show='*', validate="key", validatecommand=(root.register(self.validate_input), "%P"))
+        entry_pass = customtkinter.CTkEntry(master=pass_frame, width=230, height=50, placeholder_text='password', font=FONT['In_field'], show='*', validate="key", validatecommand=(app.register(self.validate_input), "%P"))
         entry_pass.grid(column=0, row=0, padx=(0, 12), sticky='w')
         pass_show_img = customtkinter.CTkImage(Image.open(IMAGES['pass show']), size=(25, 25))
         pass_hide_img = customtkinter.CTkImage(Image.open(IMAGES['pass hide']), size=(25, 25))
@@ -255,13 +277,13 @@ class Main:
                 if out[0]:
                     self.username = entry.get()
                     self.password = entry_pass.get()
-                    print('login done', self.username)
                     errors = False
                     client = Client.Client()
                     # Set up a TCP socket
                     try:
                         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         self.client_socket.connect((HOST, PORT))
+                        print('login done', self.username)
                     except Exception as e:
                         print(e)
                         errors = True
@@ -270,14 +292,16 @@ class Main:
                         client.run(app, self.username, SIZE_X, SIZE_Y, self.client_socket, self.profile_address,
                                    self.conversation, self.history, self.password)
                     else:
-                        login_error.configure(text='Server Error please try again')
+                        Utility.Message.display('Server Error please try again')
                 else:
-                    login_error.configure(text=out[1])
                     entry.delete(0, len(entry.get()))
                     entry_pass.delete(0, len(entry_pass.get()))
+                    Utility.Message.display(out[1])
+            else:
+                Utility.Message.display('Please fill all the fields')
 
         def sign_up():
-            self.sign_up(bg_l1)
+            self.sign_up(bg_l1, app)
 
         btn_frame = customtkinter.CTkFrame(master=frame, fg_color='transparent')
         btn_frame.grid(column=0, row=5, pady=(0, 5), sticky='s')
@@ -295,13 +319,14 @@ class Main:
 
         entry.bind('<Return>', enter)  # for enter key
 
-    def sign_up(self, bg_l1):
+    def sign_up(self, bg_l1, app):
         frame = customtkinter.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15)
         frame.place(relx=.5, rely=.5, anchor=customtkinter.CENTER)
-        #frame.grid_propagate(False)  # Fix the size
+        frame.grid_propagate(False)  # Fix the size
 
         # logo
-        logo_img = ImageTk.PhotoImage(Image.open(IMAGES['logo_png']).resize((270, 270)))
+        logo_img = Image.open(IMAGES['logo_png'])
+        logo_img = customtkinter.CTkImage(logo_img, size=(216, 216))
         label_logo = customtkinter.CTkLabel(master=frame, width=100, height=100, text='', image=logo_img,
                                             anchor='center')
         label_logo.grid(column=0, row=0, padx=42, pady=(10, 0), sticky='n')
@@ -310,46 +335,36 @@ class Main:
                                        anchor='center')
         label.grid(column=0, row=1, sticky='n', pady=(0, 3))
 
-        # display errors
-        error = customtkinter.CTkLabel(master=frame, width=100, height=50, text='Kindly enter your credentials', font=FONT['error'], anchor='center')
-        error.grid(column=0, row=4, sticky='n')
-
         # username
         entry = customtkinter.CTkEntry(master=frame, width=280, height=50, placeholder_text='username',
-                                       font=FONT['In_field'], validate="key", validatecommand=(root.register(self.validate_input), "%P"))
+                                       font=FONT['In_field'], validate="key", validatecommand=(app.register(self.validate_input), "%P"))
         entry.grid(column=0, row=2, sticky='n')
 
         # password
         pass_frame = customtkinter.CTkFrame(master=frame, fg_color='transparent')
         pass_frame.grid(column=0, row=3, sticky='n', pady=(5, 0))
         entry_pass = customtkinter.CTkEntry(master=pass_frame, width=230, height=50, placeholder_text='password',
-                                            font=FONT['In_field'], show='*', validate="key", validatecommand=(root.register(self.validate_input), "%P"))
+                                            font=FONT['In_field'], show='*', validate="key", validatecommand=(app.register(self.validate_input), "%P"))
         entry_pass.grid(column=0, row=0, padx=(0, 12), sticky='w')
         pass_show_img = customtkinter.CTkImage(Image.open(IMAGES['pass show']), size=(25, 25))
         pass_hide_img = customtkinter.CTkImage(Image.open(IMAGES['pass hide']), size=(25, 25))
         disp_pass = False
 
         def add_user():
-            if entry.get() != '' and entry_pass.get() != '':
-                out = DatabaseHandler.DataBaseHandler.adduser(entry.get(), entry_pass.get())
-                if out[0]:
-                    frame.destroy()
+            if entry.get() != '' and entry_pass.get() != '' and entry_pass_confirm.get() != '':
+                if entry_pass.get() == entry_pass_confirm.get():
+                    out = DatabaseHandler.DataBaseHandler.adduser(entry.get(), entry_pass.get())
+                    if out[0]:
+                        frame.destroy()
+                        Utility.Message.display(out[1])
+                    else:
+                        entry.delete(0, len(entry.get()))
+                        entry_pass.delete(0, len(entry_pass.get()))
+                        Utility.Message.display(out[1])
                 else:
-                    error.configure(text=out[1])
-                    entry.delete(0, len(entry.get()))
-                    entry_pass.delete(0, len(entry_pass.get()))
-
-        def pass_btn():
-            pass_show()
-
-        def back():
-            frame.destroy()
-
-        pass_show_btn = customtkinter.CTkButton(master=pass_frame, width=10, height=10, text='', font=FONT['Button'],
-                                                anchor='center', command=pass_btn, image=pass_show_img)
-        pass_show_btn.grid(column=1, row=0, sticky='e')
-        back_btn = customtkinter.CTkButton(master=frame, width=10, height=10, text='back', font=FONT['error'], anchor='center', command=back)
-        back_btn.place(relx=0.01, rely=0.01)
+                    Utility.Message.display('Password not matching with confirm password')
+            else:
+                Utility.Message.display('Please fill all the fields')
 
         def pass_show():
             nonlocal disp_pass
@@ -362,6 +377,39 @@ class Main:
                 entry_pass.configure(show='*')
                 pass_show_btn.configure(image=pass_show_img)
 
+        def back():
+            frame.destroy()
+
+        pass_show_btn = customtkinter.CTkButton(master=pass_frame, width=10, height=10, text='', font=FONT['Button'],
+                                                anchor='center', command=pass_show, image=pass_show_img)#command=pass_btn
+        pass_show_btn.grid(column=1, row=0, sticky='e')
+        back_btn = customtkinter.CTkButton(master=frame, width=10, height=10, text='back', font=FONT['error'], anchor='center', command=back)
+        back_btn.place(relx=0.01, rely=0.01)
+
+        # Confirm Password
+        pass_confirm_frame = customtkinter.CTkFrame(master=frame, fg_color='transparent')
+        pass_confirm_frame.grid(column=0, row=4, sticky='n', pady=(5, 0))
+        entry_pass_confirm = customtkinter.CTkEntry(master=pass_confirm_frame, width=230, height=50, placeholder_text='confirm password',
+                                            font=FONT['In_field'], show='*', validate="key", validatecommand=(app.register(self.validate_input), "%P"))
+        entry_pass_confirm.grid(column=0, row=0, padx=(0, 12), sticky='w')
+        disp_confirm_pass = False
+
+        def pass_confirm_btn():
+            nonlocal disp_confirm_pass
+            if not disp_confirm_pass:
+                entry_pass_confirm.configure(show='')
+                pass_confirm_show_btn.configure(image=pass_hide_img)
+                disp_confirm_pass = True
+            else:
+                disp_confirm_pass = False
+                entry_pass_confirm.configure(show='*')
+                pass_confirm_show_btn.configure(image=pass_show_img)
+
+        pass_confirm_show_btn = customtkinter.CTkButton(master=pass_confirm_frame, width=10, height=10, text='', font=FONT['Button'],
+                                                anchor='center', command=pass_confirm_btn, image=pass_show_img)
+        pass_confirm_show_btn.grid(column=1, row=0, sticky='e')
+
+        # Signing up
         sign_up_btn = customtkinter.CTkButton(master=frame, width=100, height=50, text='SIGN UP', font=FONT['Button'],
                                               anchor='center', command=add_user)
         sign_up_btn.place(relx=0.5, rely=0.99, anchor='s')
@@ -369,6 +417,7 @@ class Main:
 
     def close_window(self):
         Main.save_login_cred(self.username, self.password, self.profile_address)  # Also Closes The log console, if not closed
+        Utility.Message.close()
         root.destroy()
 
     @staticmethod

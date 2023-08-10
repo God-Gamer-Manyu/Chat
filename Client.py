@@ -5,6 +5,7 @@ import shutil
 #######################
 
 # later: comment document and fix light warnings
+# imp: change 'import customtkinter' to 'from customtkinter import *' and other import statements too
 # packages
 import socket
 import threading
@@ -56,9 +57,11 @@ PIX_LINE = 15
 BORDER_PIX = 44
 MESSAGE_LINE_LENGTH = 141
 IMAGES_FOLD_PATH = 'Resources/images/'
+BG_SIZE = Utility.BG_IMG_SIZE
 
 # decryption keys
 public_key, private_key = rsa.newkeys(1024)
+COLOR = Utility.COLOR
 
 
 # clamp values
@@ -114,6 +117,8 @@ class ChatWindow:
                 width=mes_y + 45,
                 height=mes_h + 30,
                 border_width=1,
+                fg_color=COLOR['user']['frame-fg'],
+                border_color=COLOR['user']['frame-border']
             )
             us_mes.pack(anchor="e")
 
@@ -125,6 +130,9 @@ class ChatWindow:
                 font=FONT["Comic"],
                 corner_radius=7,
                 border_spacing=1,
+                fg_color=COLOR['user']['t-box-fg'],
+                scrollbar_button_color=COLOR['user']['t-box-scroll'],
+                scrollbar_button_hover_color=COLOR['user']['t-box-scroll-hover']
             )
             us_txt.insert(customtkinter.END, text=self.message)
             us_txt.place(x=5, y=5)
@@ -150,6 +158,7 @@ class ChatWindow:
             )
             us_time.place(x=mes_y - 30, y=mes_h + 12)
 
+        # urgent: convert TkImages to pill.images (refer the logo frame in Main.py)
         def draw_pic(self, file_path, current_time=""):
             Utility.SoundManager.play(SOUND_EFFECTS["send"])
             print('hello')
@@ -337,7 +346,7 @@ class ChatWindow:
             Utility.SoundManager.play(SOUND_EFFECTS["join"])
             # username template
             us_mes = customtkinter.CTkFrame(
-                master=self.user_area, width=200, height=55, border_width=2
+                master=self.user_area, width=200, height=55, border_width=2, fg_color=COLOR['other-cl-disp']['frame-fg'], border_color=COLOR['other-cl-disp']['frame-border']
             )
             us_mes.pack()
             self.clients_widgets[username] = us_mes.winfo_name()
@@ -356,7 +365,7 @@ class ChatWindow:
             )
             us_img_l.place(x=5, y=7)
             us_name_l = customtkinter.CTkTextbox(
-                master=us_mes, width=120, height=40, font=FONT["Oth_uname"]
+                master=us_mes, width=120, height=40, font=FONT["Oth_uname"], fg_color=COLOR['other-cl-disp']['t-box-fg']
             )
             us_name_l.insert(customtkinter.END, username)
             us_name_l.place(x=48, y=7)
@@ -468,10 +477,10 @@ class ChatWindow:
         self.clients = {}  # <name>: {'pic': <profile_address>}
         self.clients_widgets = {}
         # BG
-        bg_img = ImageTk.PhotoImage(Image.open(IMAGES['bg']))
-        # noinspection PyTypeChecker
-        bg_l1 = customtkinter.CTkLabel(master=master, image=bg_img, text="")
-        bg_l1.pack(anchor="center")
+        bg_img = Image.open(IMAGES['bg'])
+        bg_img = customtkinter.CTkImage(bg_img, size=BG_SIZE)
+        bg_l1 = customtkinter.CTkLabel(master=master, image=bg_img, text='')
+        bg_l1.pack(fill='both', expand=True)
 
         # TODO: make ui grid and make it scalable
         # Main placeholder
@@ -801,6 +810,7 @@ class ChatWindow:
         self.abort = True
         self.save_files()
         Utility.SoundManager.quit()
+        Utility.Message.close()
         CLIENT_SOCKET.close()
         self.master.destroy()
 
