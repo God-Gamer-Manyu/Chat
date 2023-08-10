@@ -10,6 +10,7 @@ import time
 import Main
 import Utility
 # later: comment document and fix light warnings
+# imp: change 'import customtkinter' to 'from customtkinter import *' and other import statements too
 # Global variables
 # Fonts
 FONT = Utility.FONT
@@ -21,6 +22,7 @@ SOUND_EFFECTS = Utility.SOUND_EFFECTS
 MESSAGE_LINE_LENGTH = 173
 PIX_LINE = 15
 BORDER_PIX = 44
+BG_SIZE = Utility.BG_IMG_SIZE
 
 
 # method which gets the output from open AI
@@ -84,15 +86,16 @@ class AiChat:
         def close_window():
             Main.Main.save_login_cred(username, password, profile_address)
             Utility.SoundManager.quit()
+            Utility.Message.close()
             app.destroy()
 
         app.protocol("WM_DELETE_WINDOW", close_window)
 
         # BG
-        bg_img = ImageTk.PhotoImage(Image.open(IMAGES['bg']))
-        # noinspection PyTypeChecker
+        bg_img = Image.open(IMAGES['bg'])
+        bg_img = customtkinter.CTkImage(bg_img, size=BG_SIZE)
         bg_l1 = customtkinter.CTkLabel(master=app, image=bg_img, text='')
-        bg_l1.pack()
+        bg_l1.pack(fill='both', expand=True)
 
         # todo: Make ui grid and make them scalable
         # Main placeholder
@@ -119,7 +122,6 @@ class AiChat:
 
         # User message template
         class User:
-
             def __init__(self, message):
                 self.message = message
 
@@ -157,6 +159,7 @@ class AiChat:
 
                 return height + border_pix, mes_len
 
+            # urgent: make ui background to blue
             def draw(self, current_time=''):
                 Utility.SoundManager.play(SOUND_EFFECTS['send'])
                 mes_h, mes_y = self.size_h()   # Getting the desired height

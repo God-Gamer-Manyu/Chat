@@ -1,25 +1,24 @@
 import os
-import threading
+from tkinter import PhotoImage
 
 import pygame
-import sounddevice as sd
-from scipy.io.wavfile import read
-
-from pydub import AudioSegment
-from pydub.playback import play
 # later: comment document and fix light warnings
+# imp: change 'import customtkinter' to 'from customtkinter import *' and other import statements too
 ###################
 import customtkinter as ctk
 import CTkListbox
+from PIL import Image
+
 ###################
 
-pygame.mixer.init() # initialising pygame
+pygame.mixer.init()  # initialising pygame
 
 # Sound effects
 SOUND_EFFECTS = {
     "join": "Resources/Sound effects/User join.wav",
     "send": "Resources/Sound effects/send_message.wav",
     "receive": "Resources/Sound effects/receive message.wav",
+    'error': 'Resources/Sound effects/error.wav',
 }
 # stored files
 MEMORY = {
@@ -34,7 +33,7 @@ IMAGES = {'favicon': 'Resources/images/favicon.ico',
           'pass hide': 'Resources/images/pass_hide.png',
           'pass show': 'Resources/images/pass_show.png',
           'pattern': 'Resources/images/pattern_Home.png',
-          'bg': 'Resources/images/Bg_image.jpg',
+          'bg': 'Resources/images/Bg_image.png',
           'bot': 'Resources/images/bot.png',
           'send': 'Resources/images/send.png',
           'user': 'Resources/images/user.png',
@@ -49,6 +48,20 @@ FONT = {
     'In_field': ('Comic Sans MS', 20),
     'error': ('Comic Sans MS', 15)
 }
+BG_IMG_SIZE = (1920, 1080)
+COLOR = {
+    'user': {
+        'frame-fg': '#004d4d',
+        'frame-border': '#00b3b3',
+        't-box-fg': '#006666',
+        't-box-scroll': '#00b3b3',
+        't-box-scroll-hover':
+            '#008080'},
+    'other-cl-disp': {
+        'frame-fg': '#38761d',
+        'frame-border': '#60cd32',
+        't-box-fg': '#439023'
+    }}
 
 
 collector = []
@@ -153,3 +166,55 @@ class LogCollect:
         else:
             # Hide console
             LogCollect.quit()
+
+
+class Gif:
+    @staticmethod
+    def play(path, canvas, root):
+        frame_count = Image.open(path).n_frames
+        frames = [PhotoImage(file=path, format='gif -index %i' % i) for i in range(frame_count)]
+
+        def update(ind):
+            frame = frames[ind]
+
+            ind += 1
+            if ind == frame_count:
+                ind = 0
+            canvas.create_image(0, 0, image=frame, anchor='nw')
+            root.after(50, update, ind)
+
+        root.after(0, update, 0)
+
+
+class Message:
+    message_windows = []
+
+    @staticmethod
+    def display(message):
+        """
+        :param message: use it at the last as it leds to a loop which can hinder other statements
+        :return: None
+        """
+        def close_itself():
+            Message.message_windows.remove(mes)
+            mes.destroy()
+
+        mes = ctk.CTk()
+        mes.protocol("WM_DELETE_WINDOW", close_itself)
+        Message.message_windows.append(mes)
+        mes.title("Messages")   # Set title
+        # set the icon for the window
+        mes.iconbitmap(IMAGES['logo_ico'])
+        mes.wm_iconbitmap(IMAGES['logo_ico'])
+
+        mes_label = ctk.CTkLabel(mes, text=message, font=FONT['error'])
+        mes_label.pack(padx=50, pady=50)
+
+        sound = pygame.mixer.Sound(SOUND_EFFECTS['error'])
+        sound.play()
+        mes.mainloop()
+
+    @staticmethod
+    def close():
+        for i in Message.message_windows:
+            i.destroy()

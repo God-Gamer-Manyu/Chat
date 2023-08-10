@@ -4,6 +4,7 @@ import rsa
 import pickle
 import time
 # later: comment document and fix light warnings
+# imp: change 'import customtkinter' to 'from customtkinter import *' and other import statements too
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # for encryption
