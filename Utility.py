@@ -1,13 +1,13 @@
 import os
-from tkinter import PhotoImage
 
 import pygame
 # later: comment document and fix light warnings
 # imp: change 'import customtkinter' to 'from customtkinter import *' and other import statements too
 ###################
 import customtkinter as ctk
+from tkinter import messagebox
 import CTkListbox
-from PIL import Image
+from dotenv import load_dotenv
 
 ###################
 
@@ -61,11 +61,13 @@ COLOR = {
         'frame-fg': '#38761d',
         'frame-border': '#60cd32',
         't-box-fg': '#439023'
-    }}
+    }
+}
 
 
 collector = []
 console_toggle = False
+load_dotenv()
 
 
 # To store files in computer where people can't access directly
@@ -89,6 +91,9 @@ class DataStorePath:
         images_path = os.path.join(appdata_path, 'Intelli Chat', 'Resources', 'images')  # Generate corresponding path
         if not os.path.exists(images_path):  # create images sub folder in Resource to store user profile pic
             os.mkdir(images_path)
+        rec_images_path = os.path.join(appdata_path, 'Intelli Chat', 'Resources', 'rec_images')  # Generate corresponding path
+        if not os.path.exists(rec_images_path):  # create rec_images sub folder in Resource to store incoming images
+            os.mkdir(rec_images_path)
         return path
 
 
@@ -168,53 +173,18 @@ class LogCollect:
             LogCollect.quit()
 
 
-class Gif:
-    @staticmethod
-    def play(path, canvas, root):
-        frame_count = Image.open(path).n_frames
-        frames = [PhotoImage(file=path, format='gif -index %i' % i) for i in range(frame_count)]
-
-        def update(ind):
-            frame = frames[ind]
-
-            ind += 1
-            if ind == frame_count:
-                ind = 0
-            canvas.create_image(0, 0, image=frame, anchor='nw')
-            root.after(50, update, ind)
-
-        root.after(0, update, 0)
-
-
 class Message:
-    message_windows = []
 
     @staticmethod
-    def display(message):
+    def display(message, message_type: int):
         """
+        :param message_type: 0- informative message,1- warning, 2- error
         :param message: use it at the last as it leds to a loop which can hinder other statements
         :return: None
         """
-        def close_itself():
-            Message.message_windows.remove(mes)
-            mes.destroy()
-
-        mes = ctk.CTk()
-        mes.protocol("WM_DELETE_WINDOW", close_itself)
-        Message.message_windows.append(mes)
-        mes.title("Messages")   # Set title
-        # set the icon for the window
-        mes.iconbitmap(IMAGES['logo_ico'])
-        mes.wm_iconbitmap(IMAGES['logo_ico'])
-
-        mes_label = ctk.CTkLabel(mes, text=message, font=FONT['error'])
-        mes_label.pack(padx=50, pady=50)
-
-        sound = pygame.mixer.Sound(SOUND_EFFECTS['error'])
-        sound.play()
-        mes.mainloop()
-
-    @staticmethod
-    def close():
-        for i in Message.message_windows:
-            i.destroy()
+        if message_type == 0:
+            messagebox.showinfo('Intelli Chat', message)
+        elif message_type == 1:
+            messagebox.showwarning('Intelli Chat', message)
+        else:
+            messagebox.showerror('Intelli Chat', message)

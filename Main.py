@@ -6,7 +6,6 @@ import builtins as __builtin__
 import os
 import shutil
 import socket
-from tkinter import PhotoImage
 
 import customtkinter
 from PIL import Image
@@ -20,6 +19,8 @@ import aichat
 from Utility import DataStorePath
 
 # later: comment document and fix light warnings
+# later: add a start screen video and add button effects
+# todo: Addd light and dark mode and change the colours accordingly
 # urgent: Remove storage files as it reflects while building exe
 # imp: change 'import customtkinter' to 'from customtkinter import *' and other import statements too
 ####################
@@ -58,6 +59,7 @@ IMAGES = Utility.IMAGES
 MEMORY = Utility.MEMORY
 # resize bg to fixed size
 BG_SIZE = Utility.BG_IMG_SIZE
+DPI = 96
 
 
 class Main:
@@ -102,7 +104,11 @@ class Main:
         self.profile_btn = customtkinter.CTkButton(None)
 
     def run(self, app):
-        app.geometry(f'{SIZE_X}x{SIZE_Y}')  # Set screen size
+        # screen_width = app.winfo_screenwidth()
+        # screen_height = app.winfo_screenheight()
+        # x_coordinate = int((screen_width/2) - (SIZE_X/2))
+        # y_coordinate = int((screen_height/2) - (SIZE_Y/2))
+        # app.geometry(f'{SIZE_X}x{SIZE_Y}+{x_coordinate}+{y_coordinate}')  # Set screen size
         app.title("Intelli chat")  # Set title
         # set the icon for the window
         app.iconbitmap(IMAGES['logo_ico'])
@@ -110,8 +116,6 @@ class Main:
 
         # urgent check Background with teacher
 
-        path = IMAGES['bg']#"Resources/images/wp2757834-wallpaper-gif.gif"
-        print(path[-3:])
         bg_img = Image.open(IMAGES['bg'])
         bg_img = customtkinter.CTkImage(bg_img, size=BG_SIZE)
         bg_l1 = customtkinter.CTkLabel(master=app, image=bg_img, text='')
@@ -120,17 +124,6 @@ class Main:
         frame = customtkinter.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15)
         frame.place(relx=.5, rely=.5, anchor=customtkinter.CENTER)
         frame.grid_propagate(False)  # Fix the size
-
-        # imp giff lags check with ma'am whether to put or not
-        if path[-3] in 'gif':
-            bg_l1.destroy()
-            bg_l1 = customtkinter.CTkCanvas(app)
-            Utility.Gif.play(path, bg_l1, app)
-            bg_l1.pack(fill='both', expand=True)
-
-            frame = customtkinter.CTkFrame(master=bg_l1, width=300, height=500)#corner_radius=15
-            bg_l1.create_window(SIZE_X/2+150, SIZE_Y/2+150,window=frame)
-            frame.grid_propagate(False)  # Fix the size
 
         #####################################################################
         '''For Debug purpose'''
@@ -172,6 +165,8 @@ class Main:
                                                       font=FONT['error'])
                     error_la.place(x=50, y=460)
 
+        # imp: add images to the button
+
         label = customtkinter.CTkLabel(master=frame, width=100, height=50, text='CHAT WITH', font=FONT['Button'], anchor='center')
         label.grid(column=0, row=1, padx=25, pady=(5, 15), sticky='n')
         # AI button
@@ -182,7 +177,8 @@ class Main:
         friend_btn = customtkinter.CTkButton(master=frame, width=150, height=50, text='FRIENDS', font=FONT['Button'], anchor='center', command=friends)
         friend_btn.grid(column=0, row=3, padx=25, pady=15, sticky='n')
 
-        # later: create profile frame with animation, etc, which allows user to change profile pic and username
+        # later: create profile frame with animation, etc, which allows user to change profile pic and username/
+        # later: refer to https://www.youtube.com/watch?v=vVRrOi5LGSo
         print(self.profile_address)
         profile_pic = customtkinter.CTkImage(Image.open(self.profile_address))
         self.profile_btn = customtkinter.CTkButton(master=bg_l1, width=40, height=40, text='', font=FONT['Button'], image=profile_pic, corner_radius=5, anchor='center', command=self.profile_get)
@@ -292,13 +288,13 @@ class Main:
                         client.run(app, self.username, SIZE_X, SIZE_Y, self.client_socket, self.profile_address,
                                    self.conversation, self.history, self.password)
                     else:
-                        Utility.Message.display('Server Error please try again')
+                        Utility.Message.display('Server Error please try again', 2)
                 else:
                     entry.delete(0, len(entry.get()))
                     entry_pass.delete(0, len(entry_pass.get()))
-                    Utility.Message.display(out[1])
+                    Utility.Message.display(out[1], 2)
             else:
-                Utility.Message.display('Please fill all the fields')
+                Utility.Message.display('Please fill all the fields', 0)
 
         def sign_up():
             self.sign_up(bg_l1, app)
@@ -356,15 +352,15 @@ class Main:
                     out = DatabaseHandler.DataBaseHandler.adduser(entry.get(), entry_pass.get())
                     if out[0]:
                         frame.destroy()
-                        Utility.Message.display(out[1])
+                        Utility.Message.display(out[1], 0)
                     else:
                         entry.delete(0, len(entry.get()))
                         entry_pass.delete(0, len(entry_pass.get()))
-                        Utility.Message.display(out[1])
+                        Utility.Message.display(out[1], 1)
                 else:
-                    Utility.Message.display('Password not matching with confirm password')
+                    Utility.Message.display('Password not matching with confirm password', 1)
             else:
-                Utility.Message.display('Please fill all the fields')
+                Utility.Message.display('Please fill all the fields', 0)
 
         def pass_show():
             nonlocal disp_pass
@@ -381,7 +377,7 @@ class Main:
             frame.destroy()
 
         pass_show_btn = customtkinter.CTkButton(master=pass_frame, width=10, height=10, text='', font=FONT['Button'],
-                                                anchor='center', command=pass_show, image=pass_show_img)#command=pass_btn
+                                                anchor='center', command=pass_show, image=pass_show_img)
         pass_show_btn.grid(column=1, row=0, sticky='e')
         back_btn = customtkinter.CTkButton(master=frame, width=10, height=10, text='back', font=FONT['error'], anchor='center', command=back)
         back_btn.place(relx=0.01, rely=0.01)
@@ -389,8 +385,7 @@ class Main:
         # Confirm Password
         pass_confirm_frame = customtkinter.CTkFrame(master=frame, fg_color='transparent')
         pass_confirm_frame.grid(column=0, row=4, sticky='n', pady=(5, 0))
-        entry_pass_confirm = customtkinter.CTkEntry(master=pass_confirm_frame, width=230, height=50, placeholder_text='confirm password',
-                                            font=FONT['In_field'], show='*', validate="key", validatecommand=(app.register(self.validate_input), "%P"))
+        entry_pass_confirm = customtkinter.CTkEntry(master=pass_confirm_frame, width=230, height=50, placeholder_text='confirm password', font=FONT['In_field'], show='*', validate="key", validatecommand=(app.register(self.validate_input), "%P"))
         entry_pass_confirm.grid(column=0, row=0, padx=(0, 12), sticky='w')
         disp_confirm_pass = False
 
@@ -405,8 +400,7 @@ class Main:
                 entry_pass_confirm.configure(show='*')
                 pass_confirm_show_btn.configure(image=pass_show_img)
 
-        pass_confirm_show_btn = customtkinter.CTkButton(master=pass_confirm_frame, width=10, height=10, text='', font=FONT['Button'],
-                                                anchor='center', command=pass_confirm_btn, image=pass_show_img)
+        pass_confirm_show_btn = customtkinter.CTkButton(master=pass_confirm_frame, width=10, height=10, text='', font=FONT['Button'], anchor='center', command=pass_confirm_btn, image=pass_show_img)
         pass_confirm_show_btn.grid(column=1, row=0, sticky='e')
 
         # Signing up
@@ -417,7 +411,6 @@ class Main:
 
     def close_window(self):
         Main.save_login_cred(self.username, self.password, self.profile_address)  # Also Closes The log console, if not closed
-        Utility.Message.close()
         root.destroy()
 
     @staticmethod
@@ -443,6 +436,23 @@ if __name__ == '__main__':
     customtkinter.set_default_color_theme('dark-blue')
 
     root = customtkinter.CTk()  # initiate custom Tkinter
+
+    # getting screen width and height of display
+    width = root.winfo_screenwidth()
+    height = root.winfo_screenheight()
+    # setting tkinter window size
+    root.geometry("%dx%d+0+0" % (width, height))
+
+    DPI = root.winfo_fpixels('1i')
     main = Main('', [], '')
     root.protocol("WM_DELETE_WINDOW", main.close_window)
+
+    def resizing_mid():
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x_coordinate = int((screen_width/2) - (SIZE_X/2))
+        y_coordinate = int((screen_height/2) - (SIZE_Y/2))
+        root.geometry(f'{SIZE_X}x{SIZE_Y}+{x_coordinate}+{y_coordinate}')  # Set screen size
+
+    root.bind('<Escape>', lambda event: resizing_mid())
     main.run(root)
