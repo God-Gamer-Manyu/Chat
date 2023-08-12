@@ -137,7 +137,6 @@ class ChatWindow:
             )
             us_time.grid(row=1, column=1, padx=5, pady=(0, 5), sticky='se')
 
-        # Urgent: fix the frame position
         def draw_pic(self, file_path, current_time=""):
             Utility.SoundManager.play(SOUND_EFFECTS["send"])
             file_path = STORE_PATH + '/' + file_path
@@ -153,9 +152,9 @@ class ChatWindow:
 
             # show the full pic in image viewer
             def show():
-                image_holder = customtkinter.CTkFrame(self.mainframe, 985, 600)
-                image_holder.pack_propagate(False)
-                image_holder.place(relx=.185, rely=0.01)
+                image_holder = customtkinter.CTkFrame(self.mainframe, width=SIZE_X - 315, height=SIZE_Y - 135)
+                image_holder.grid_propagate(False)
+                image_holder.grid(row=1, rowspan=2, column=1, padx=(0, 5), pady=5)
                 img = customtkinter.CTkLabel(image_holder, text='', image=customtkinter.CTkImage(Image.open(file_path), size=(SIZE_X - 315, SIZE_Y - 135)))
                 img.pack(anchor='center', pady=15, padx=15)
 
@@ -327,7 +326,7 @@ class ChatWindow:
             us_name_l.grid(row=0, column=1, pady=5, padx=5, sticky='ne')
 
         def draw_pic(self, username, file_path, profile_address=IMAGES['user'], is_private=False, current_time=""):
-            Utility.SoundManager.play(SOUND_EFFECTS["send"])
+            Utility.SoundManager.play(SOUND_EFFECTS["receive"])
             file_path = STORE_PATH + '/' + file_path
 
             # message holder
@@ -350,9 +349,9 @@ class ChatWindow:
 
             # show the full pic in image viewer
             def show():
-                image_holder = customtkinter.CTkFrame(self.mainframe, 985, 600)
-                image_holder.pack_propagate(False)
-                image_holder.place(relx=.185, rely=0.01)
+                image_holder = customtkinter.CTkFrame(self.mainframe, width=SIZE_X - 315, height=SIZE_Y - 135)
+                image_holder.grid_propagate(False)
+                image_holder.grid(row=1, rowspan=2, column=1, padx=(0, 5), pady=5)
                 img = customtkinter.CTkLabel(image_holder, text='', image=customtkinter.CTkImage(Image.open(file_path), size=(SIZE_X - 315, SIZE_Y - 135)))
                 img.pack(anchor='center', pady=15, padx=15)
 
@@ -362,7 +361,7 @@ class ChatWindow:
 
                 close_img = customtkinter.CTkImage(Image.open(IMAGES['close']), size=(30, 30))
                 close_btn = customtkinter.CTkButton(master=image_holder, text='', command=close, width=35, image=close_img, corner_radius=8)
-                close_btn.place(relx=0.95, rely=0.02)
+                close_btn.place(relx=0.94, rely=0.02)
 
             image = customtkinter.CTkImage(Image.open(file_path), size=(100, 100))
             # display image as message
@@ -615,7 +614,7 @@ class ChatWindow:
                 u_name = i['uname']
                 if u_name == self.name:
                     user = self.User(
-                        i["message"], self.message_area, self.profile_address
+                        i["message"], self.message_area, self.profile_address, self.frame
                     )
                     image = i["image"]
                     if image:
