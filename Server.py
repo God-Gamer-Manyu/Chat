@@ -4,7 +4,6 @@ import rsa
 import pickle
 import time
 # later: comment document and fix light warnings
-# imp: change 'import customtkinter' to 'from customtkinter import *' and other import statements too
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # for encryption
@@ -237,6 +236,7 @@ class ChatRoom:
 
             res = client_socket.recv(1024).decode("utf-8")
             if res != "All conversation received":
+                print(res)
                 time.sleep(0.05)
                 for i in range(eval(res)):
                     img_path = client_socket.recv(1024).decode("utf-8")

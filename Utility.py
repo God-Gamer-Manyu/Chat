@@ -2,12 +2,13 @@ import os
 
 import pygame
 # later: comment document and fix light warnings
-# imp: change 'import customtkinter' to 'from customtkinter import *' and other import statements too
 ###################
 import customtkinter as ctk
 from tkinter import messagebox
 import CTkListbox
 from dotenv import load_dotenv
+import numpy as np
+from PIL import Image, ImageDraw
 
 ###################
 
@@ -38,7 +39,10 @@ IMAGES = {'favicon': 'Resources/images/favicon.ico',
           'send': 'Resources/images/send.png',
           'user': 'Resources/images/user.png',
           'attachment': 'Resources/images/attachment.png',
-          'close': 'Resources/images/close.png'}
+          'close': 'Resources/images/close.png',
+          'def_profile': 'Resources/images/default profile picture.jpg',
+          'right_arrow': ('Resources/images/right_arrow_white.png', 'Resources/images/right_arrow_white.png'),
+          }
 # Fonts
 FONT = {
     "Comic": ("Comic Sans MS", 13),
@@ -49,18 +53,84 @@ FONT = {
     'error': ('Comic Sans MS', 15)
 }
 BG_IMG_SIZE = (1920, 1080)
+color_palate_light_1 = [
+    '#ECECF4',
+    "#685D82",
+    '#A8A4BB',
+    '#847C9C',
+    '#8C84A0',
+    '#C7C5D7',
+    '#948CA4',
+    '#BCBCCC',
+    '#8C8CA4',
+    '#FCFCFC']
+color_palate_light_2 = [
+    '#2e8cf3',
+    '#ffffff',
+    '#f2f5fa',
+    '#f8fcff',
+    '#f4f8fb'
+]
+color_palate_dark_1 = [
+    '#242131',
+    '#2567F6',
+    '#BFBEC3',
+    '#0C0C11',
+    '#585E7A',
+    '#77A2F8',
+    '#695952',
+    '#44455A',
+    '#323244',
+    '#51545C'
+]
+color_palate_dark_2 = [
+    '#252331',
+    '#211f2c',
+    '#343145',
+    '#252331',
+    '#2e79fd'
+]
 COLOR = {
     'user': {
-        'frame-fg': '#004d4d',
-        'frame-border': '#00b3b3',
-        't-box-fg': '#006666',
-        't-box-scroll': '#00b3b3',
-        't-box-scroll-hover':
-            '#008080'},
+        'frame-fg': ('#00b3b3', '#1c497d'),
+        'frame-border': ('#009999', '#2e7ad1'),
+        't-box-fg': ('#00e6e6', '#205592'),
+    },
     'other-cl-disp': {
-        'frame-fg': '#38761d',
-        'frame-border': '#60cd32',
-        't-box-fg': '#439023'
+        'frame-fg': ('#60cd32', '#38761d'),
+        'frame-border': ('#4da428', '#60cd32'),
+        't-box-fg': ('#80d75b', '#439023')
+    },
+    'other cl': {
+        'frame-fg': ("#8C84A0", '#211f2c'),
+        'frame-border': ('#685D82', '#4f4a68'),
+        't-box-fg': ('#ECECF4', '#343145'),
+    },
+    'chat': {
+        'darkest': ('#847C9C', '#211f2c'),
+        'inside 1': ('#BCBCCC', '#252331'),
+        'inside 2': ('#C7C5D7', '#343145'),
+        'scroll': ('#847C9C', '#343145'),
+        'scroll hover': ('#ECECF4', '#4f4a68'),
+    },
+    'main': {
+        'darkest': ('#847C9C', '#211f2c'),
+        'inside 1': ('#BCBCCC', '#252331'),
+        'border': ('#847C9C', '#343145')
+    },
+    'font': {
+        '1': ('#BCBCCC', '#BCBCCC'),
+        '2': ('#343145', '#BCBCCC')
+    },
+    'button': {
+        'normal': ('#4f4a68', '#343145'),
+        'hover': ('#343145', '#4f4a68')
+    },
+    'switch': {
+        'progress': ('#847C9C', '#685D82'),
+        'fg': ('#BCBCCC', '#252331'),
+        'btn normal': ('#4f4a68', '#343145'),
+        'btn hover': ('#343145', '#4f4a68')
     }
 }
 
@@ -174,7 +244,6 @@ class LogCollect:
 
 
 class Message:
-
     @staticmethod
     def display(message, message_type: int):
         """
@@ -182,9 +251,29 @@ class Message:
         :param message: use it at the last as it leds to a loop which can hinder other statements
         :return: None
         """
-        if message_type == 0:
-            messagebox.showinfo('Intelli Chat', message)
-        elif message_type == 1:
-            messagebox.showwarning('Intelli Chat', message)
-        else:
-            messagebox.showerror('Intelli Chat', message)
+        match message_type:
+            case 0:
+                messagebox.showinfo('Intelli Chat', message)
+            case 1:
+                messagebox.showwarning('Intelli Chat', message)
+            case _:  # refers to any case which is not covered
+                messagebox.showerror('Intelli Chat', message)
+
+
+class Images:
+    @staticmethod
+    def open_as_circle(filename):
+        img = Image.open(filename)
+        img = img.convert('RGB')
+        h, w = img.size
+
+        # creating luminous image
+        lum_img = Image.new('L', [h, w], 0)
+        draw = ImageDraw.Draw(lum_img)
+        draw.pieslice([(0, 0), (h, w)], 0, 360, fill=255)
+        img_arr = np.array(img)
+        lum_img_arr = np.array(lum_img)
+
+        final_img_arr = np.dstack((img_arr, lum_img_arr))
+        return Image.fromarray(final_img_arr)
+
