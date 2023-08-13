@@ -3,14 +3,14 @@ from __future__ import print_function
 import builtins as __builtin__
 #######################
 
-# later: comment document and fix light warnings
-# imp: change 'import customtkinter' to 'from customtkinter import *' and other import statements too
+# later: comment, document, fix light warnings, optimise code and use tkinter class wherever possible to organise code
+# later: For approach to optimise tkinter ui - https://www.youtube.com/watch?v=0y1kYxOp8hE&list=PLpMixYKO4EXflJFPhTvZOVAbs7lBdEBSa&index=11
 # packages
 import socket
 import threading
 from tkinter import filedialog
 
-import customtkinter
+import customtkinter as ctk
 from PIL import Image
 import datetime
 import rsa  # for encrypting
@@ -75,24 +75,22 @@ def clamp(value, min_value, max_value):
 
 class ChatWindow:
     # User message template
-    class User:
+    # imp: make profile picture rounded
+    class User(ctk.CTkFrame):
         def __init__(self, message, message_area, profile_address, mainframe=None):
+            super().__init__(
+                message_area,
+                border_width=1,
+                fg_color=COLOR['user']['frame-fg'],
+                border_color=COLOR['user']['frame-border']
+            )
+            self.pack(anchor="e")
             self.message = message
-            self.message_area = message_area
             self.profile_address = profile_address
             self.mainframe = mainframe
 
         def draw(self, current_time=""):
             Utility.SoundManager.play(SOUND_EFFECTS["send"])
-
-            # message holder
-            us_mes = customtkinter.CTkFrame(
-                master=self.message_area,
-                border_width=1,
-                fg_color=COLOR['user']['frame-fg'],
-                border_color=COLOR['user']['frame-border']
-            )
-            us_mes.pack(anchor="e")
 
             # display message
             mes = ''
@@ -105,8 +103,8 @@ class ChatWindow:
                     mes += ' ' + i
                 ct += 1
 
-            us_txt = customtkinter.CTkLabel(
-                master=us_mes,
+            us_txt = ctk.CTkLabel(
+                master=self,
                 font=FONT["Comic"],
                 anchor='w',
                 justify='left',
@@ -118,9 +116,9 @@ class ChatWindow:
             us_txt.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
 
             # display profile pic
-            us_img = customtkinter.CTkImage(Image.open(self.profile_address))
-            us_img_l = customtkinter.CTkLabel(
-                master=us_mes, image=us_img, width=30, height=30, text=""
+            us_img = ctk.CTkImage(Image.open(self.profile_address))
+            us_img_l = ctk.CTkLabel(
+                master=self, image=us_img, width=30, height=30, text=""
             )
             us_img_l.grid(row=0, column=0, padx=(5, 0), pady=7, sticky='nw')
 
@@ -128,8 +126,8 @@ class ChatWindow:
             if current_time == "":
                 current_time = str(datetime.datetime.now())
             current_time = current_time.replace('/', ':')
-            us_time = customtkinter.CTkLabel(
-                master=us_mes,
+            us_time = ctk.CTkLabel(
+                master=self,
                 text=current_time[:-10],
                 width=30,
                 height=10,
@@ -141,35 +139,41 @@ class ChatWindow:
             Utility.SoundManager.play(SOUND_EFFECTS["send"])
             file_path = STORE_PATH + '/' + file_path
 
-            # message holder #size_x - 325
-            us_mes = customtkinter.CTkFrame(
-                master=self.message_area,
-                border_width=1,
-                fg_color=COLOR['user']['frame-fg'],
-                border_color=COLOR['user']['frame-border']
-            )
-            us_mes.pack(anchor="e")
-
             # show the full pic in image viewer
             def show():
-                image_holder = customtkinter.CTkFrame(self.mainframe, width=SIZE_X - 315, height=SIZE_Y - 135)
+                image_holder = ctk.CTkFrame(
+                    self.mainframe,
+                    width=SIZE_X - 315,
+                    height=SIZE_Y - 135,
+                    fg_color=COLOR['chat']['inside 1']
+                )
                 image_holder.grid_propagate(False)
                 image_holder.grid(row=1, rowspan=2, column=1, padx=(0, 5), pady=5)
-                img = customtkinter.CTkLabel(image_holder, text='', image=customtkinter.CTkImage(Image.open(file_path), size=(SIZE_X - 315, SIZE_Y - 135)))
+                img = ctk.CTkLabel(image_holder, text='', image=ctk.CTkImage(Image.open(file_path), size=(SIZE_X - 315, SIZE_Y - 135)))
                 img.pack(anchor='center', pady=15, padx=15)
 
                 # close the image viewer
                 def close():
                     image_holder.destroy()
 
-                close_img = customtkinter.CTkImage(Image.open(IMAGES['close']), size=(30, 30))
-                close_btn = customtkinter.CTkButton(master=image_holder, text='', command=close, width=35, image=close_img, corner_radius=8)
+                close_img = ctk.CTkImage(Image.open(IMAGES['close']), size=(30, 30))
+                close_btn = ctk.CTkButton(
+                    master=image_holder,
+                    text='',
+                    command=close,
+                    width=35,
+                    image=close_img,
+                    corner_radius=8,
+                    text_color=COLOR['font']['1'],
+                    fg_color=COLOR['button']['normal'],
+                    hover_color=COLOR['button']['hover']
+                )
                 close_btn.place(relx=0.95, rely=0.02)
 
-            image = customtkinter.CTkImage(Image.open(file_path), size=(100, 100))
+            image = ctk.CTkImage(Image.open(file_path), size=(100, 100))
             # display image as message
-            us_pic = customtkinter.CTkButton(
-                master=us_mes,
+            us_pic = ctk.CTkButton(
+                master=self,
                 image=image,
                 corner_radius=2,
                 width=100,
@@ -181,9 +185,9 @@ class ChatWindow:
             us_pic.grid(row=0, column=1, padx=(0, 5), pady=5, sticky='ne')
 
             # display profile pic
-            us_img = customtkinter.CTkImage(Image.open(self.profile_address))
-            us_img_l = customtkinter.CTkLabel(
-                master=us_mes, image=us_img, width=30, height=30, text=""
+            us_img = ctk.CTkImage(Image.open(self.profile_address))
+            us_img_l = ctk.CTkLabel(
+                master=self, image=us_img, width=30, height=30, text=""
             )
             us_img_l.grid(row=0, column=0, padx=(5, 0), pady=7, sticky='nw')
 
@@ -191,8 +195,8 @@ class ChatWindow:
             if current_time == "":
                 current_time = str(datetime.datetime.now())
             current_time = current_time.replace('/', ':')
-            us_time = customtkinter.CTkLabel(
-                master=us_mes,
+            us_time = ctk.CTkLabel(
+                master=self,
                 text=current_time[:-10],
                 width=30,
                 height=10,
@@ -201,11 +205,16 @@ class ChatWindow:
             us_time.grid(row=1, column=1, padx=5, pady=(0, 5), sticky='e')
 
     # other client message template
-    class Cl:
-        def __init__(self, message_area, user_area, clients_widgets, mainframe):
-            self.message_area = message_area
-            self.user_area = user_area
-            self.clients_widgets = clients_widgets
+    # imp: make profile picture rounded
+    class Cl(ctk.CTkFrame):
+        def __init__(self, message_area, mainframe):
+            super().__init__(
+                message_area,
+                border_width=1,
+                fg_color=COLOR['other cl']['frame-fg'],
+                border_color=COLOR['other cl']['frame-border']
+            )
+            self.pack(anchor="w")
             self.mainframe = mainframe
 
         @staticmethod
@@ -221,25 +230,18 @@ class ChatWindow:
             if len(username) > 9:
                 username = username[:9] + ".."
 
-            # message placeholder
-            client_mes = customtkinter.CTkFrame(
-                master=self.message_area,
-                border_width=1,
-            )
-            client_mes.pack(anchor="w")
-
             # other user logo
             if profile_address != IMAGES['user'] and profile_address != IMAGES['bot']:
                 profile_address = os.path.join(STORE_PATH, profile_address)
-            client_img = customtkinter.CTkImage(Image.open(profile_address))
-            client_img_l = customtkinter.CTkLabel(
-                master=client_mes, image=client_img, width=30, height=30, text=""
+            client_img = ctk.CTkImage(Image.open(profile_address))
+            client_img_l = ctk.CTkLabel(
+                master=self, image=client_img, width=30, height=30, text=""
             )
             client_img_l.grid(row=1, column=0, padx=(5, 0), pady=7, sticky="nw")
 
             # username
-            client_un = customtkinter.CTkLabel(
-                master=client_mes,
+            client_un = ctk.CTkLabel(
+                master=self,
                 text=username,
                 width=30,
                 anchor="w",
@@ -253,8 +255,8 @@ class ChatWindow:
             if current_time == "":
                 current_time = str(datetime.datetime.now())
             current_time = current_time.replace('/', ':')
-            client_time = customtkinter.CTkLabel(
-                master=client_mes,
+            client_time = ctk.CTkLabel(
+                master=self,
                 text=current_time[:-10],
                 width=30,
                 height=10,
@@ -264,8 +266,8 @@ class ChatWindow:
 
             # private
             if is_private:
-                client_time = customtkinter.CTkLabel(
-                    master=client_mes,
+                client_time = ctk.CTkLabel(
+                    master=self,
                     text="privately",
                     width=30,
                     height=10,
@@ -284,62 +286,26 @@ class ChatWindow:
                     mes += ' ' + i
                 ct += 1
 
-            us_txt = customtkinter.CTkLabel(
-                master=client_mes,
+            us_txt = ctk.CTkLabel(
+                master=self,
                 font=FONT["Comic"],
                 anchor='w',
                 justify='left',
                 text=mes,
                 corner_radius=7,
-                fg_color='#424242'
+                fg_color=COLOR['other cl']['t-box-fg'],
             )
             us_txt.grid(row=1, column=2, padx=5, pady=5, sticky='nsew')
             return
-
-        # displays which and all user has joined the chatroom
-        def draw_oth_uname(self, username, profile_address):
-            Utility.SoundManager.play(SOUND_EFFECTS["join"])
-            # username template
-            us_mes = customtkinter.CTkFrame(
-                master=self.user_area, width=200, height=55, border_width=2, fg_color=COLOR['other-cl-disp']['frame-fg'], border_color=COLOR['other-cl-disp']['frame-border']
-            )
-            us_mes.pack()
-            self.clients_widgets[username] = us_mes.winfo_name()
-
-            # display profile pic
-            if profile_address != IMAGES['user'] and profile_address != IMAGES['bot']:
-                profile_address = os.path.join(STORE_PATH, profile_address)
-            us_img = customtkinter.CTkImage(Image.open(profile_address))
-            us_img_l = customtkinter.CTkLabel(
-                master=us_mes,
-                corner_radius=4,
-                width=40,
-                height=40,
-                text="",
-                image=us_img,
-            )
-            us_img_l.grid(row=0, column=0,pady=5, padx=(5, 0), sticky='nw')
-            us_name_l = customtkinter.CTkTextbox(
-                master=us_mes, width=120, height=40, font=FONT["Oth_uname"], fg_color=COLOR['other-cl-disp']['t-box-fg']
-            )
-            us_name_l.insert(customtkinter.END, username)
-            us_name_l.grid(row=0, column=1, pady=5, padx=5, sticky='ne')
 
         def draw_pic(self, username, file_path, profile_address=IMAGES['user'], is_private=False, current_time=""):
             Utility.SoundManager.play(SOUND_EFFECTS["receive"])
             file_path = STORE_PATH + '/' + file_path
 
-            # message holder
-            client_mes = customtkinter.CTkFrame(
-                master=self.message_area,
-                border_width=1,
-            )
-            client_mes.pack(anchor="w")
-
             # private
             if is_private:
-                client_time = customtkinter.CTkLabel(
-                    master=client_mes,
+                client_time = ctk.CTkLabel(
+                    master=self,
                     text="privately",
                     width=30,
                     height=10,
@@ -349,24 +315,39 @@ class ChatWindow:
 
             # show the full pic in image viewer
             def show():
-                image_holder = customtkinter.CTkFrame(self.mainframe, width=SIZE_X - 315, height=SIZE_Y - 135)
+                image_holder = ctk.CTkFrame(
+                    self.mainframe,
+                    width=SIZE_X - 315,
+                    height=SIZE_Y - 135,
+                    fg_color=COLOR['chat']['inside 1']
+                )
                 image_holder.grid_propagate(False)
                 image_holder.grid(row=1, rowspan=2, column=1, padx=(0, 5), pady=5)
-                img = customtkinter.CTkLabel(image_holder, text='', image=customtkinter.CTkImage(Image.open(file_path), size=(SIZE_X - 315, SIZE_Y - 135)))
+                img = ctk.CTkLabel(image_holder, text='', image=ctk.CTkImage(Image.open(file_path), size=(SIZE_X - 315, SIZE_Y - 135)))
                 img.pack(anchor='center', pady=15, padx=15)
 
                 # close the image viewer
                 def close():
                     image_holder.destroy()
 
-                close_img = customtkinter.CTkImage(Image.open(IMAGES['close']), size=(30, 30))
-                close_btn = customtkinter.CTkButton(master=image_holder, text='', command=close, width=35, image=close_img, corner_radius=8)
+                close_img = ctk.CTkImage(Image.open(IMAGES['close']), size=(30, 30))
+                close_btn = ctk.CTkButton(
+                    master=image_holder,
+                    text='',
+                    command=close,
+                    width=35,
+                    image=close_img,
+                    corner_radius=8,
+                    text_color=COLOR['font']['1'],
+                    fg_color=COLOR['button']['normal'],
+                    hover_color=COLOR['button']['hover']
+                )
                 close_btn.place(relx=0.94, rely=0.02)
 
-            image = customtkinter.CTkImage(Image.open(file_path), size=(100, 100))
+            image = ctk.CTkImage(Image.open(file_path), size=(100, 100))
             # display image as message
-            us_pic = customtkinter.CTkButton(
-                master=client_mes,
+            us_pic = ctk.CTkButton(
+                master=self,
                 image=image,
                 corner_radius=2,
                 width=100,
@@ -379,15 +360,15 @@ class ChatWindow:
             # display profile pic of sender
             if profile_address != IMAGES['user'] and profile_address != IMAGES['bot']:
                 profile_address = os.path.join(STORE_PATH, profile_address)
-            us_img = customtkinter.CTkImage(Image.open(profile_address))
-            us_img_l = customtkinter.CTkLabel(
-                master=client_mes, image=us_img, width=30, height=30, text=""
+            us_img = ctk.CTkImage(Image.open(profile_address))
+            us_img_l = ctk.CTkLabel(
+                master=self, image=us_img, width=30, height=30, text=""
             )
             us_img_l.grid(row=1, column=0, padx=(5, 0), pady=7, sticky='nw')
 
             # other client's username
-            client_un = customtkinter.CTkLabel(
-                master=client_mes,
+            client_un = ctk.CTkLabel(
+                master=self,
                 text=username,
                 width=30,
                 anchor="w",
@@ -400,14 +381,53 @@ class ChatWindow:
             if current_time == "":
                 current_time = str(datetime.datetime.now())
             current_time.replace('.', ':')
-            us_time = customtkinter.CTkLabel(
-                master=client_mes,
+            us_time = ctk.CTkLabel(
+                master=self,
                 text=current_time[:-10],
                 width=30,
                 height=10,
                 font=FONT["t_stamp"],
             )
             us_time.grid(row=2, column=2, padx=5, pady=(0, 5), sticky='e')
+
+    # class which handles the UI of showing names of other clients in user area
+    class OthCLIENT(ctk.CTkFrame):
+        def __init__(self, user_area, clients_widgets):
+            super().__init__(
+                user_area,
+                width=200,
+                height=55,
+                border_width=2,
+                fg_color=COLOR['other-cl-disp']['frame-fg'],
+                border_color=COLOR['other-cl-disp']['frame-border']
+            )
+            self.pack()
+            self.clients_widgets = clients_widgets
+
+        # displays which and all user has joined the chatroom
+        def draw(self, username, profile_address):
+            Utility.SoundManager.play(SOUND_EFFECTS["join"])
+
+            self.clients_widgets[username] = self.winfo_name()
+
+            # display profile pic
+            if profile_address != IMAGES['user'] and profile_address != IMAGES['bot']:
+                profile_address = os.path.join(STORE_PATH, profile_address)
+            us_img = ctk.CTkImage(Image.open(profile_address))
+            us_img_l = ctk.CTkLabel(
+                master=self,
+                corner_radius=4,
+                width=40,
+                height=40,
+                text="",
+                image=us_img,
+            )
+            us_img_l.grid(row=0, column=0, pady=5, padx=(5, 0), sticky='nw')
+            us_name_l = ctk.CTkTextbox(
+                master=self, width=120, height=40, font=FONT["Oth_uname"], fg_color=COLOR['other-cl-disp']['t-box-fg']
+            )
+            us_name_l.insert(ctk.END, username)
+            us_name_l.grid(row=0, column=1, pady=5, padx=5, sticky='ne')
 
     @staticmethod
     def send_file(client_socket, file_dir):
@@ -420,7 +440,6 @@ class ChatWindow:
         # send the picture data
         client_socket.send(data)
         client_socket.send(b"<END>")
-        #client_socket.recv(1024).decode()
         print("image sent")
 
     @staticmethod
@@ -439,7 +458,6 @@ class ChatWindow:
         with open(save_file_dir, "wb") as f:
             f.write(picture)
         f.close()
-        #client_socket.send(f"{client_socket}received profile pic".encode())
         print("Picture received and saved to file")
 
     def __init__(
@@ -500,22 +518,25 @@ class ChatWindow:
         # later: create functionality which will load the latest image of a client (if required, may be done automatically)
         # appending missed conversation which were not saved
         img_not_found = []
-        print(self.conversation)
+        print('to get missing arguments', self.conversation)
         for i in conversation_ser:
             if self.conversation:
                 for j in self.conversation:
                     if i['uname'] == j['uname'] and i['message'] == j['message'] and i['time'] == j['time']:
                         break
                 else:
-                    if not os.path.isfile(i['image']):
-                        img_not_found.append(i['image'])
+                    image = i['image']
+                    if image and not os.path.isfile(image) and image not in img_not_found:
+                        img_not_found.append(image)
                     self.conversation.append(i)
             else:
-                if not os.path.isfile(i['image']):
-                    img_not_found.append(i['image'])
+                image = i['image']
+                if image and not os.path.isfile(image):
+                    img_not_found.append(image)
                 self.conversation.append(i)
 
         if len(img_not_found) > 0:
+            print(img_not_found)
             CLIENT_SOCKET.send(str(len(img_not_found)).encode())
             time.sleep(0.05)
             for i in img_not_found:
@@ -529,36 +550,39 @@ class ChatWindow:
         self.master = master
         self.clients = {}  # <name>: {'pic': <profile_address>}
         self.clients_widgets = {}
+
         # BG
         bg_img = Image.open(IMAGES['bg'])
-        bg_img = customtkinter.CTkImage(bg_img, size=BG_SIZE)
-        bg_l1 = customtkinter.CTkLabel(master=master, image=bg_img, text='')
+        bg_img = ctk.CTkImage(bg_img, size=BG_SIZE)
+        bg_l1 = ctk.CTkLabel(master=master, image=bg_img, text='')
         bg_l1.pack(fill='both', expand=True)
 
         # Main placeholder
-        self.frame = customtkinter.CTkFrame(
-            master=bg_l1, width=size_x - 50, height=size_y - 50, corner_radius=15,
+        self.frame = ctk.CTkFrame(
+            master=bg_l1, width=size_x - 50, height=size_y - 50, corner_radius=15, fg_color=COLOR['chat']['darkest']
         )
-        self.frame.place(relx=0.5, rely=0.5, anchor=customtkinter.CENTER)
+        self.frame.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
 
         # header
-        head_frame = customtkinter.CTkFrame(master=self.frame, width=1190, height=40)
+        head_frame = ctk.CTkFrame(master=self.frame, width=1190, height=40, fg_color=COLOR['chat']['inside 1'])
         head_frame.grid(row=0, column=0, columnspan=2, padx=5, pady=5)
         head_frame.grid_propagate(False)
-        rule_disp = customtkinter.CTkLabel(
+        rule_disp = ctk.CTkLabel(
             master=head_frame,
             width=30,
             height=30,
             text="Start with @username to message particular user",
             font=FONT["Oth_uname"],
+            text_color=COLOR['font']['2'],
         )
         rule_disp.grid(row=0, column=1, padx=(250, 100), pady=5)
-        uname_disp = customtkinter.CTkLabel(
+        uname_disp = ctk.CTkLabel(
             master=head_frame,
             width=30,
             height=30,
             text="Name: " + str(name),
             font=FONT["Oth_uname"],
+            text_color=COLOR['font']['2'],
         )
         uname_disp.grid(row=0, column=2, sticky='e', padx=(100, 100), pady=5)
 
@@ -577,33 +601,48 @@ class ChatWindow:
             main.run(master)
 
         # Back button
-        back_btn = customtkinter.CTkButton(
+        back_btn = ctk.CTkButton(
             master=head_frame,
             width=30,
             height=30,
             text="Back",
             font=FONT["Comic"],
             command=back,
+            text_color=COLOR['font']['1'],
+            fg_color=COLOR['button']['normal'],
+            hover_color=COLOR['button']['hover']
         )
         back_btn.grid(row=0, column=0, sticky='w', padx=(5, 100), pady=5)
 
         # message holder
-        self.message_area = customtkinter.CTkScrollableFrame(
-            master=self.frame, width=size_x - 315, height=size_y - 135
+        self.message_area = ctk.CTkScrollableFrame(
+            master=self.frame,
+            width=size_x - 315,
+            height=size_y - 135,
+            fg_color=COLOR['chat']['inside 1'],
+            scrollbar_button_color=COLOR['chat']['scroll'],
+            scrollbar_button_hover_color=COLOR['chat']['scroll hover']
         )
         self.message_area.grid(row=1, rowspan=2, column=1, padx=(0, 5), pady=5)
 
         # User holder
-        user_head = customtkinter.CTkLabel(
+        user_head = ctk.CTkLabel(
             master=self.frame,
             width=30,
             height=30,
             font=FONT["Oth_uname"],
             text="USER'S JOINED",
+            fg_color='transparent',
+            text_color=COLOR['font']['2'],
         )
         user_head.grid(row=1, column=0, padx=(5, 0), pady=(5, 0))
-        self.user_area = customtkinter.CTkScrollableFrame(
-            master=self.frame, width=175, height=size_y - 165
+        self.user_area = ctk.CTkScrollableFrame(
+            master=self.frame,
+            width=175,
+            height=size_y - 165,
+            fg_color=COLOR['chat']['inside 1'],
+            scrollbar_button_color=COLOR['chat']['scroll'],
+            scrollbar_button_hover_color=COLOR['chat']['scroll hover']
         )
         self.user_area.grid(row=2, column=0, padx=(5, 0), pady=5)
 
@@ -622,9 +661,7 @@ class ChatWindow:
                     else:
                         user.draw(i["time"])
                 else:
-                    cl = self.Cl(
-                        self.message_area, self.user_area, self.clients_widgets, self.frame
-                    )
+                    cl = self.Cl(self.message_area, self.frame)
                     pic = i["pic"]
                     if pic == "":
                         pic = IMAGES['user']
@@ -635,38 +672,53 @@ class ChatWindow:
                         cl.draw(i["message"], u_name, pic, i["private"], i["time"])
 
         # bottom frame
-        btm_frame = customtkinter.CTkFrame(self.frame)
+        btm_frame = ctk.CTkFrame(self.frame, fg_color=COLOR['chat']['inside 1'])
         btm_frame.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
         # input field
-        self.input_box = customtkinter.CTkEntry(
+        self.input_box = ctk.CTkEntry(
             master=btm_frame,
             width=size_x - 175,
             placeholder_text="Type Here",
             font=FONT["Comic"],
+            fg_color=COLOR['chat']['inside 2'],
+            border_color=COLOR['chat']['scroll']
         )
         self.input_box.grid(row=0, column=0, padx=5, pady=5)
 
         # sent button
-        enter_img = customtkinter.CTkImage(Image.open(IMAGES['send']))
-        enter = customtkinter.CTkButton(
+        enter_img = ctk.CTkImage(Image.open(IMAGES['send']))
+        enter = ctk.CTkButton(
             master=btm_frame,
             width=30,
             corner_radius=5,
             command=self.send_message,
             text="",
             image=enter_img,
+            text_color=COLOR['font']['1'],
+            fg_color=COLOR['button']['normal'],
+            hover_color=COLOR['button']['hover']
         )
         enter.grid(row=0, column=2, padx=(0, 5), pady=5)
 
         master.bind("<Return>", self.send_message)  # Enter button function
 
         # image attach button
-        attach_img = customtkinter.CTkImage(Image.open(IMAGES['attachment']), size=(20, 20))
-        img_attach_btn = customtkinter.CTkButton(btm_frame, width=30, image=attach_img, corner_radius=5, command=self.send_pic, text="")
+        attach_img = ctk.CTkImage(Image.open(IMAGES['attachment']), size=(20, 20))
+        img_attach_btn = ctk.CTkButton(
+            btm_frame,
+            width=30,
+            image=attach_img,
+            corner_radius=5,
+            command=self.send_pic,
+            text="",
+            text_color=COLOR['font']['1'],
+            fg_color=COLOR['button']['normal'],
+            hover_color=COLOR['button']['hover']
+        )
         img_attach_btn.grid(row=0, column=1, padx=(0, 5), pady=5)
 
         # display initial message
-        cl = self.Cl(self.message_area, self.user_area, self.clients_widgets, self.frame)
+        cl = self.Cl(self.message_area, self.frame)
         cl.draw(
             f"Welcome to the Chat room {name}. All messages are end to end encrypted 🔒",
             "Server",
@@ -685,11 +737,11 @@ class ChatWindow:
             while not self.abort:
                 # Receive messages from the server
                 message = rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode("utf-8")
-                ocl = self.Cl(self.message_area, self.user_area, self.clients_widgets, self.frame)
                 if not message:
                     break
                 if message.startswith("@server#"):  # Server messages
                     message = message.split("#")[-1]
+                    ocl = self.Cl(self.message_area, self.frame)
                     ocl.draw(
                         message,
                         "Server",
@@ -732,7 +784,8 @@ class ChatWindow:
                         if key not in self.clients.keys():
                             self.clients[key] = message[key]
                             # Append the message to the message box in the GUI
-                            ocl.draw_oth_uname(key, message[key]["pic"])
+                            ocl = self.OthCLIENT(self.user_area, self.clients_widgets)
+                            ocl.draw(key, message[key]['pic'])
 
                     # finding the clients who left
                     remove_client = []
@@ -754,7 +807,7 @@ class ChatWindow:
                     sender_name = rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode("utf-8")
                     img_name = rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode("utf-8")
                     self.receive_file(CLIENT_SOCKET, STORE_PATH + REC_IMG_FOLD_PATH + img_name + '.png')
-
+                    ocl = self.Cl(self.message_area, self.frame)
                     ocl.draw_pic(sender_name, REC_IMG_FOLD_PATH + img_name + '.png', self.clients[sender_name]["pic"], False, img_name)
                     self.conversation.append(
                         {
@@ -768,7 +821,7 @@ class ChatWindow:
                     )
                     print(self.conversation)
 
-                    print('images receved')
+                    print('images received')
                 else:  # Handling messages sent by client
                     mes_len = eval(message)
                     print(mes_len)
@@ -794,6 +847,7 @@ class ChatWindow:
                                 'image': ''
                             }
                         )
+                        ocl = self.Cl(self.message_area, self.frame)
                         ocl.draw(
                             message,
                             recipient,
@@ -803,6 +857,7 @@ class ChatWindow:
                     else:  # public messages
                         timestamp = tokens[-1]
                         message = "".join(tokens[1:-1])
+                        ocl = self.Cl(self.message_area, self.frame)
                         ocl.draw(
                             message,
                             recipient,
@@ -870,7 +925,7 @@ class ChatWindow:
             for i in mes_chunk:
                 CLIENT_SOCKET.send(rsa.encrypt(i.encode("utf-8"), self.public_partner))
                 time.sleep(0.05)
-            self.input_box.delete(0, customtkinter.END)
+            self.input_box.delete(0, ctk.END)
 
     def send_pic(self):
         file_path = filedialog.askopenfilename()
