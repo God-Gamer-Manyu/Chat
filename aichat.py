@@ -78,7 +78,7 @@ class AiChat:
         return self.history  # returning the whole history
 
     def mainloop(self, app, size_x, size_y, profile_address, username, conversation, password):
-        app.title("Intelli chat - AI")   # Set title
+        app.title(f"Intelli chat - {Utility.AI_CHAT_NAME}")   # Set title
 
         def close_window():
             Main.Main.save_login_cred(username, password, profile_address)
@@ -154,7 +154,6 @@ class AiChat:
         message_area.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
 
         # User message template
-        # imp: make profile picture rounded
         class User(ctk.CTkFrame):
             def __init__(self, message):
                 super().__init__(
@@ -189,7 +188,10 @@ class AiChat:
                 us_txt.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
 
                 # display profile pic
-                us_img = ctk.CTkImage(Image.open(profile_address))
+                if profile_address == IMAGES['user']:
+                    us_img = ctk.CTkImage(Image.open(profile_address))
+                else:
+                    us_img = ctk.CTkImage(Utility.Images.open_as_circle(profile_address))
                 us_img_l = ctk.CTkLabel(master=self, image=us_img, width=30, height=30, text='')
                 us_img_l.grid(row=0, column=0, padx=(5, 0), pady=7, sticky='nw')
 
@@ -378,44 +380,8 @@ class AiChat:
         app.bind('<Return>', enter_btn)  # Enter button function
 
         # initial message
-        Utility.SoundManager.play(SOUND_EFFECTS["receive"])
-        # message placeholder
-        i_client_mes = ctk.CTkFrame(
-            master=message_area,
-            border_width=1,
-            fg_color=COLOR['other cl']['frame-fg'],
-            border_color=COLOR['other cl']['frame-border']
-        )
-        i_client_mes.pack(anchor='w')
-
-        # bot logo
-        i_client_img = ctk.CTkImage(Image.open(IMAGES['bot']))
-        i_client_img_l = ctk.CTkLabel(master=i_client_mes, image=i_client_img, width=30, height=30, text='')
-        i_client_img_l.grid(row=0, column=0, padx=(5, 0), pady=7, sticky="nw")
-
-        # timestamp
-        i_client_time = ctk.CTkLabel(master=i_client_mes, text=str(self.history[0][2])[:-10], width=30, height=10, font=FONT['t_stamp'])
-        i_client_time.grid(row=1, column=1, padx=5, pady=(0, 5), sticky='ne')
-        # bot message
-        mes = ''
-        ct = 0
-        for i in self.history[0][1].strip().split():
-            if ct >= 20:
-                mes += '\n' + i
-                ct = 0
-            else:
-                mes += ' ' + i
-            ct += 1
-        i_client_txt = ctk.CTkLabel(
-            master=i_client_mes,
-            font=FONT['Comic'],
-            corner_radius=7,
-            anchor='w',
-            justify='left',
-            text=mes,
-            fg_color=COLOR['other cl']['t-box-fg'],
-        )
-        i_client_txt.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
+        initial_ai = Ai()
+        initial_ai.draw(self.history[0][1], str(self.history[0][2]))
 
         for i in self.history[1:]:
             user = User(i[0])

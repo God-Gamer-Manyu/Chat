@@ -156,8 +156,7 @@ class ChatRoom:
         # save the picture to a file
         with open(save_file_dir, "wb") as f:
             f.write(picture)
-        f.close()
-        #client_socket.send(f"{client_socket} received picture".encode())
+        time.sleep(0.05)
         print("Picture received and saved to file")
 
     @staticmethod
@@ -165,14 +164,13 @@ class ChatRoom:
         # load the picture from a file
         with open(file_dir, "rb") as f:
             picture = f.read()
-        f.close()
         # serialize the picture data using pickle
         data = pickle.dumps(picture)
         # send the picture data
         client_socket.send(data)
         # send end file
         client_socket.send(b"<END>")
-        #client_socket.recv(1024).decode()
+        time.sleep(0.05)
         print("image sent")
 
     def start_server(self, host, port):
