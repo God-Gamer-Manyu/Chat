@@ -6,11 +6,13 @@ import builtins as __builtin__
 import os
 import shutil
 import socket
+import threading
 
 import customtkinter as ctk
 from PIL import Image
 from cryptography.fernet import Fernet
 from customtkinter import filedialog
+from tkVideoPlayer import TkinterVideo
 
 import Client
 import DatabaseHandler
@@ -62,6 +64,7 @@ MEMORY = Utility.MEMORY
 BG_SIZE = Utility.BG_IMG_SIZE
 DPI = 96
 COLOR = Utility.COLOR
+login_widget: ctk.CTkFrame = None  # login widget instance
 
 
 class Main:
@@ -74,20 +77,19 @@ class Main:
             key = file_key.read()
         # using the generated key
         fernet = Fernet(key)
-        # imp: while building for production you can uncomment this line
-        # u_name = os.path.join(STORE_PATH, MEMORY['u_name'])
-        # if os.path.isfile(u_name) and username == '':
-        #     file = open(u_name, 'rb')
-        #     line = file.read()
-        #     line = fernet.decrypt(line).decode()
-        #     line = line.split(':')
-        #     print(line)
-        #     username = line[0]
-        #     password = line[1]
-        #     if len(line) == 4:
-        #         profile_address = line[2] + ':' + line[3]  # because path goes like C:\\
-        #     else:
-        #         profile_address = line[2]
+        u_name = os.path.join(STORE_PATH, MEMORY['u_name'])
+        if os.path.isfile(u_name) and username == '':
+            file = open(u_name, 'rb')
+            line = file.read()
+            line = fernet.decrypt(line).decode()
+            line = line.split(':')
+            print(line)
+            username = line[0]
+            password = line[1]
+            if len(line) == 4:
+                profile_address = line[2] + ':' + line[3]  # because path goes like C:\\
+            else:
+                profile_address = line[2]
 
         # load conversation from file
         memory = os.path.join(STORE_PATH, MEMORY['cons'])
@@ -112,8 +114,7 @@ class Main:
 
         # urgent check Background with teacher
 
-        bg_img = Image.open(IMAGES['bg'])
-        bg_img = ctk.CTkImage(bg_img, size=BG_SIZE)
+        bg_img = ctk.CTkImage(*map(Image.open, IMAGES['bg']), size=BG_SIZE)
         bg_l1 = ctk.CTkLabel(master=app, image=bg_img, text='')
         bg_l1.pack(fill='both', expand=True)
 
@@ -124,8 +125,9 @@ class Main:
         #####################################################################
         '''For Debug purpose'''
         con_ctk_toggle = ctk.Variable(value=Utility.console_toggle)
-        console_checkbox = ctk.CTkCheckBox(bg_l1, 25, 25, text='', bg_color='#000000', command=Utility.LogCollect.raise_console, border_color='#000000', variable=con_ctk_toggle)
-        console_checkbox.place(relx=.015, rely=.015, anchor=ctk.CENTER)
+        color = ('#ffffff', '#000000')
+        console_checkbox = ctk.CTkCheckBox(bg_l1, 25, 25, text='', bg_color=color, command=Utility.LogCollect.raise_console, border_color=color, variable=con_ctk_toggle)
+        console_checkbox.place(relx=1, rely=1, anchor='se')
         #################################################################################
 
         # logo
@@ -156,10 +158,7 @@ class Main:
                     bg_l1.destroy()
                     client.run(app, self.username, SIZE_X, SIZE_Y, self.client_socket, self.profile_address, self.conversation, self.history, self.password)
                 else:
-                    error_la = ctk.CTkLabel(master=frame, width=100, height=30,
-                                                      text='Server Error please try again',
-                                                      font=FONT['error'])
-                    error_la.place(x=50, y=460)
+                    Utility.Message.display('Server Error please try again', 2)
 
         label = ctk.CTkLabel(
             master=frame,
@@ -172,14 +171,14 @@ class Main:
         )
         label.grid(column=0, row=1, padx=25, pady=(5, 15), sticky='n')
 
-        # later: animate the buttons
-        # later: refer to https://www.youtube.com/watch?v=wf0aArIhTrk&list=PLpMixYKO4EXcKoRTvN0FdNaUNobV0QGFQ&index=11 for animations
         # AI button
-        ai_btn = ctk.CTkButton(
+        ai_btn = Utility.AnimatedButton(
             master=frame,
+            light_path=Utility.ANIM_FOLD_PATH['AI'][0],
+            dark_path=Utility.ANIM_FOLD_PATH['AI'][1],
             width=150,
             height=50,
-            text='AI',
+            text=Utility.AI_CHAT_NAME.upper(),
             font=FONT['Button'],
             anchor='center',
             command=ai,
@@ -190,11 +189,13 @@ class Main:
         ai_btn.grid(column=0, row=2, padx=25, pady=8, sticky='n')
 
         # Friend button
-        friend_btn = ctk.CTkButton(
+        friend_btn = Utility.AnimatedButton(
             master=frame,
+            light_path=Utility.ANIM_FOLD_PATH['friends'][0],
+            dark_path=Utility.ANIM_FOLD_PATH['friends'][1],
             width=150,
             height=50,
-            text='FRIENDS',
+            text=Utility.FRIEND_CHAT_NAME.upper(),
             font=FONT['Button'],
             anchor='center',
             command=friends,
@@ -251,17 +252,29 @@ class Main:
                 # login button
                 self.setting_login_btn = ctk.CTkButton(
                     self,
-                    text='Login',
+                    text='LOGIN',
                     font=FONT['Button'],
                     command=lambda: self.login(main_class_object),
                     text_color=COLOR['font']['1'],
                     fg_color=COLOR['button']['normal'],
                     hover_color=COLOR['button']['hover']
                 )
+                # logout btn
+                self.setting_logout_btn = ctk.CTkButton(
+                    self,
+                    text='LOGOUT',
+                    font=FONT['Button'],
+                    command=lambda: self.logout(main_class_object),
+                    text_color=COLOR['font']['1'],
+                    fg_color=COLOR['button']['normal'],
+                    hover_color=COLOR['button']['hover']
+                )
+                self.display_elements_on_cond(main_class_object)
+
                 self.display_elements_on_cond(main_class_object)
 
                 # Switch between dark and light mode
-                self.appearance_mode = ctk.IntVar(value=1)
+                self.appearance_mode = ctk.IntVar(value=Utility.APPEARANCE_MODE)
                 appearance_mode_switch = ctk.CTkSwitch(
                     self,
                     variable=self.appearance_mode,
@@ -300,11 +313,20 @@ class Main:
                 self.start_animate()
                 main_class_object.login(self.bg_li, self.root, False, self)
 
+            def logout(self, main_class_object):
+                main_class_object.profile_address = IMAGES['user']
+                main_class_object.username = ''
+                main_class_object.password = ''
+                profile_pic = ctk.CTkImage(Utility.Images.open_as_circle(IMAGES['def_profile']), size=(250, 250))
+                self.profile_pic_btn.configure(image=profile_pic)
+                self.display_elements_on_cond(main_class_object)
+                self.start_animate()
+
             # display elements based on conditions
             def display_elements_on_cond(self, main_class_object):
                 """
                 displays login if log in is not done or else display user details
-                :param main_class_object: the object which contains profile picture and username
+                :param main_class_object: the object which contains profile picture, username and password
                 Note: if object doesn't contain login function then make sure that this function is only called after the user is logged in
                 """
                 if main_class_object.username:
@@ -312,34 +334,47 @@ class Main:
                     #  display username
                     self.u_name_label.configure(text=f'Welcome! {main_class_object.username}')
                     self.u_name_label.grid(row=1, column=0, padx=5, pady=5)
+                    # display logout button
+                    self.setting_logout_btn.grid(row=2, column=0, padx=5, pady=5)
                 else:
                     self.u_name_label.grid_forget()
+                    self.setting_logout_btn.grid_forget()
                     # login of not logged in
                     self.setting_login_btn.grid(row=1, column=0, padx=5, pady=5)
 
             def profile_get(self, main_class_object, img_size: tuple):
-                if main_class_object.profile_address == IMAGES['user']:
-                    # show the file dialog and get the selected file(s)
-                    file_path = filedialog.askopenfilename()
-                    if file_path:
-                        # saving the new pic's address in profile address
-                        main_class_object.profile_address = os.path.join(STORE_PATH, IMAGES_FOLD_PATH) + file_path.split('/')[-1]
+                if main_class_object.username:
+                    if main_class_object.profile_address == IMAGES['user']:
+                        # show the file dialog and get the selected file(s)
+                        file_path = filedialog.askopenfilename()
+                        if file_path:
+                            # saving the new pic's address in profile address
+                            main_class_object.profile_address = os.path.join(STORE_PATH, IMAGES_FOLD_PATH) + file_path.split('/')[-1]
 
-                        abs_target_dir = STORE_PATH + '\\' + IMAGES_FOLD_PATH.replace('/', '\\')
+                            abs_target_dir = STORE_PATH + '\\' + IMAGES_FOLD_PATH.replace('/', '\\')
 
-                        # check if the file is already in the target directory
-                        if os.path.dirname(file_path) != abs_target_dir:
-                            # move the file to the target directory
-                            shutil.copy(file_path, abs_target_dir)
-                            print('File moved to:', abs_target_dir)
-                        else:
-                            print('File is already in:', abs_target_dir)
+                            # check if the file is already in the target directory
+                            if os.path.dirname(file_path) != abs_target_dir:
+                                # move the file to the target directory
+                                shutil.copy(file_path, abs_target_dir)
+                                print('File moved to:', abs_target_dir)
+                            else:
+                                print('File is already in:', abs_target_dir)
 
-                        img = ctk.CTkImage(Utility.Images.open_as_circle(main_class_object.profile_address), size=img_size)
-                        self.profile_pic_btn.configure(image=img)
+                            img = ctk.CTkImage(Utility.Images.open_as_circle(main_class_object.profile_address), size=img_size)
+                            self.profile_pic_btn.configure(image=img)
+                else:
+                    Utility.Message.display('Please Login', 0)
 
             def change_mode(self):
-                ctk.set_appearance_mode('dark') if self.appearance_mode.get() == 1 else ctk.set_appearance_mode('light')
+                #bg_play()
+                match self.appearance_mode.get():
+                    case 1:
+                        ctk.set_appearance_mode('dark')
+                        Utility.APPEARANCE_MODE = 1
+                    case 0:
+                        ctk.set_appearance_mode('light')
+                        Utility.APPEARANCE_MODE = 0
 
             def start_animate(self):
                 if self.in_start_pos:
@@ -367,8 +402,10 @@ class Main:
         setting_panel = SettingPanel(bg_l1, 1, 0.8, self, bg_l1, app)
 
         # settings button
-        setting_btn = ctk.CTkButton(
+        setting_btn = Utility.AnimatedButton(
             master=frame,
+            light_path=Utility.ANIM_FOLD_PATH['setting'][0],
+            dark_path=Utility.ANIM_FOLD_PATH['setting'][1],
             width=150,
             height=50,
             text='SETTING',
@@ -392,9 +429,17 @@ class Main:
             return False
 
     def login(self, bg_l1, app, join=True, setting_panel=None):
+        # Removing any other instances of login (making it singleton)
+        global login_widget
+        if login_widget:
+            login_widget.destroy()
+
         frame = ctk.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15, fg_color=COLOR['main']['darkest'])
         frame.place(relx=.5, rely=.5, anchor=ctk.CENTER)
         frame.grid_propagate(False)  # Fix the size
+
+        # assigning the frame as the current instance of login widget
+        login_widget = frame
 
         # logo
         logo_img = Image.open(IMAGES['logo_png'])
@@ -764,7 +809,7 @@ class Main:
 
 
 if __name__ == '__main__':
-    ctk.set_appearance_mode('dark')
+    ctk.set_appearance_mode('dark') if Utility.APPEARANCE_MODE == 1 else ctk.set_appearance_mode('light')
     ctk.set_default_color_theme('dark-blue')
 
     root = ctk.CTk()  # initiate custom Tkinter

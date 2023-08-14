@@ -62,6 +62,7 @@ IMAGES_FOLD_PATH = 'Resources/images/'
 REC_IMG_FOLD_PATH = '/Resources/rec_images/'
 BG_SIZE = Utility.BG_IMG_SIZE
 SIZE_X, SIZE_Y = Main.SIZE_X, Main.SIZE_Y
+CAN_TEXT = True
 
 # decryption keys
 public_key, private_key = rsa.newkeys(1024)
@@ -75,7 +76,6 @@ def clamp(value, min_value, max_value):
 
 class ChatWindow:
     # User message template
-    # imp: make profile picture rounded
     class User(ctk.CTkFrame):
         def __init__(self, message, message_area, profile_address, mainframe=None):
             super().__init__(
@@ -116,7 +116,10 @@ class ChatWindow:
             us_txt.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
 
             # display profile pic
-            us_img = ctk.CTkImage(Image.open(self.profile_address))
+            if self.profile_address == IMAGES['user']:
+                us_img = ctk.CTkImage(Image.open(self.profile_address))
+            else:
+                us_img = ctk.CTkImage(Utility.Images.open_as_circle(self.profile_address))
             us_img_l = ctk.CTkLabel(
                 master=self, image=us_img, width=30, height=30, text=""
             )
@@ -185,7 +188,10 @@ class ChatWindow:
             us_pic.grid(row=0, column=1, padx=(0, 5), pady=5, sticky='ne')
 
             # display profile pic
-            us_img = ctk.CTkImage(Image.open(self.profile_address))
+            if self.profile_address == IMAGES['user']:
+                us_img = ctk.CTkImage(Image.open(self.profile_address))
+            else:
+                us_img = ctk.CTkImage(Utility.Images.open_as_circle(self.profile_address))
             us_img_l = ctk.CTkLabel(
                 master=self, image=us_img, width=30, height=30, text=""
             )
@@ -205,7 +211,6 @@ class ChatWindow:
             us_time.grid(row=1, column=1, padx=5, pady=(0, 5), sticky='e')
 
     # other client message template
-    # imp: make profile picture rounded
     class Cl(ctk.CTkFrame):
         def __init__(self, message_area, mainframe):
             super().__init__(
@@ -233,7 +238,9 @@ class ChatWindow:
             # other user logo
             if profile_address != IMAGES['user'] and profile_address != IMAGES['bot']:
                 profile_address = os.path.join(STORE_PATH, profile_address)
-            client_img = ctk.CTkImage(Image.open(profile_address))
+                client_img = ctk.CTkImage(Utility.Images.open_as_circle(profile_address))
+            else:
+                client_img = ctk.CTkImage(Image.open(profile_address))
             client_img_l = ctk.CTkLabel(
                 master=self, image=client_img, width=30, height=30, text=""
             )
@@ -346,7 +353,7 @@ class ChatWindow:
 
             image = ctk.CTkImage(Image.open(file_path), size=(100, 100))
             # display image as message
-            us_pic = ctk.CTkButton(
+            client_pic = ctk.CTkButton(
                 master=self,
                 image=image,
                 corner_radius=2,
@@ -355,16 +362,18 @@ class ChatWindow:
                 text='',
                 command=show,
             )
-            us_pic.grid(row=1, column=2, padx=(0, 5), pady=(5, 5), sticky='ne')
+            client_pic.grid(row=1, column=2, padx=(0, 5), pady=(5, 5), sticky='ne')
 
-            # display profile pic of sender
+            # other user logo
             if profile_address != IMAGES['user'] and profile_address != IMAGES['bot']:
                 profile_address = os.path.join(STORE_PATH, profile_address)
-            us_img = ctk.CTkImage(Image.open(profile_address))
-            us_img_l = ctk.CTkLabel(
-                master=self, image=us_img, width=30, height=30, text=""
+                client_img = ctk.CTkImage(Utility.Images.open_as_circle(profile_address))
+            else:
+                client_img = ctk.CTkImage(Image.open(profile_address))
+            client_img_l = ctk.CTkLabel(
+                master=self, image=client_img, width=30, height=30, text=""
             )
-            us_img_l.grid(row=1, column=0, padx=(5, 0), pady=7, sticky='nw')
+            client_img_l.grid(row=1, column=0, padx=(5, 0), pady=7, sticky='nw')
 
             # other client's username
             client_un = ctk.CTkLabel(
@@ -381,14 +390,14 @@ class ChatWindow:
             if current_time == "":
                 current_time = str(datetime.datetime.now())
             current_time.replace('.', ':')
-            us_time = ctk.CTkLabel(
+            client_time = ctk.CTkLabel(
                 master=self,
                 text=current_time[:-10],
                 width=30,
                 height=10,
                 font=FONT["t_stamp"],
             )
-            us_time.grid(row=2, column=2, padx=5, pady=(0, 5), sticky='e')
+            client_time.grid(row=2, column=2, padx=5, pady=(0, 5), sticky='e')
 
     # class which handles the UI of showing names of other clients in user area
     class OthCLIENT(ctk.CTkFrame):
@@ -410,55 +419,67 @@ class ChatWindow:
 
             self.clients_widgets[username] = self.winfo_name()
 
-            # display profile pic
-            if profile_address != IMAGES['user'] and profile_address != IMAGES['bot']:
-                profile_address = os.path.join(STORE_PATH, profile_address)
-            us_img = ctk.CTkImage(Image.open(profile_address))
-            us_img_l = ctk.CTkLabel(
+            # other user logo
+            profile_address = os.path.join(STORE_PATH, profile_address)
+            client_img = ctk.CTkImage(Utility.Images.open_as_circle(profile_address))
+            client_img_l = ctk.CTkLabel(
                 master=self,
                 corner_radius=4,
                 width=40,
                 height=40,
                 text="",
-                image=us_img,
+                image=client_img,
             )
-            us_img_l.grid(row=0, column=0, pady=5, padx=(5, 0), sticky='nw')
-            us_name_l = ctk.CTkTextbox(
+            client_img_l.grid(row=0, column=0, pady=5, padx=(5, 0), sticky='nw')
+            client_name_l = ctk.CTkTextbox(
                 master=self, width=120, height=40, font=FONT["Oth_uname"], fg_color=COLOR['other-cl-disp']['t-box-fg']
             )
-            us_name_l.insert(ctk.END, username)
-            us_name_l.grid(row=0, column=1, pady=5, padx=5, sticky='ne')
+            client_name_l.insert(ctk.END, username)
+            client_name_l.grid(row=0, column=1, pady=5, padx=5, sticky='ne')
 
     @staticmethod
     def send_file(client_socket, file_dir):
-        # load the picture from a file
-        with open(file_dir, "rb") as f:
-            picture = f.read()
-        f.close()
-        # serialize the picture data using pickle
-        data = pickle.dumps(picture)
-        # send the picture data
-        client_socket.send(data)
-        client_socket.send(b"<END>")
-        print("image sent")
+        try:
+            global CAN_TEXT
+            CAN_TEXT = False
+            # load the picture from a file
+            file_dir = file_dir.replace('/', '\\')
+            print(file_dir)
+            with open(file_dir, "rb") as f:
+                picture = f.read()
+            # serialize the picture data using pickle
+            data = pickle.dumps(picture)
+            # send the picture data
+            client_socket.sendall(data)
+            client_socket.send(b"<END>")
+            time.sleep(0.05)
+            print("image sent")
+            CAN_TEXT = True
+        except Exception as e:
+            print('Error send pic:-', e)
+            Utility.Message.display('Error occurred while sending picture, please try again', 2)
 
     @staticmethod
     def receive_file(client_socket, save_file_dir):
-        # receive the picture data
-        data = b""
-        while True:
-            packet = client_socket.recv(4096)
-            data += packet
-            if data[-5:] == b"<END>":
-                data = data[:-5]
-                break
-        # deserialize the picture data using pickle
-        picture = pickle.loads(data)
-        # save the picture to a file
-        with open(save_file_dir, "wb") as f:
-            f.write(picture)
-        f.close()
-        print("Picture received and saved to file")
+        try:
+            # receive the picture data
+            data = b""
+            while True:
+                packet = client_socket.recv(4096)
+                data += packet
+                if data[-5:] == b"<END>":
+                    data = data[:-5]
+                    break
+            # deserialize the picture data using pickle
+            picture = pickle.loads(data)
+            # save the picture to a file
+            with open(save_file_dir, "wb") as f:
+                f.write(picture)
+            time.sleep(0.05)
+            print("Picture received and saved to file")
+        except Exception as e:
+            print('error receiving pic:-', e)
+            Utility.Message.display('Error occurred while receiving picture', 2)
 
     def __init__(
         self,
@@ -499,21 +520,25 @@ class ChatWindow:
         )
         CLIENT_SOCKET.send(f"{name}received cons_length".encode())
 
-        conversation_ser = []
-        for i in range(cons_length):
-            cons_len = eval(
-                rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode("utf-8")
-            )
-            CLIENT_SOCKET.send(f"{name}received cons_len".encode())
-            rec = ""
-            for j in range(cons_len):
-                rec += rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode(
-                    "utf-8"
+        try:
+            conversation_ser = []
+            for i in range(cons_length):
+                cons_len = eval(
+                    rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode("utf-8")
                 )
-                CLIENT_SOCKET.send(f"{name}received client".encode())
-            rec = eval(rec)
-            print("previous cons", rec)
-            conversation_ser.append(rec)
+                CLIENT_SOCKET.send(f"{name}received cons_len".encode())
+                rec = ""
+                for j in range(cons_len):
+                    rec += rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode(
+                        "utf-8"
+                    )
+                    CLIENT_SOCKET.send(f"{name}received client".encode())
+                rec = eval(rec)
+                print("previous cons", rec)
+                conversation_ser.append(rec)
+        except Exception as e:
+            conversation_ser = []
+            print('error while receiving prev cons from server:-', e)
 
         # later: create functionality which will load the latest image of a client (if required, may be done automatically)
         # appending missed conversation which were not saved
@@ -691,7 +716,7 @@ class ChatWindow:
             master=btm_frame,
             width=30,
             corner_radius=5,
-            command=self.send_message,
+            command=lambda: self.send_message(),
             text="",
             image=enter_img,
             text_color=COLOR['font']['1'],
@@ -700,7 +725,7 @@ class ChatWindow:
         )
         enter.grid(row=0, column=2, padx=(0, 5), pady=5)
 
-        master.bind("<Return>", self.send_message)  # Enter button function
+        master.bind("<Return>", lambda event: self.send_message())  # Enter button function
 
         # image attach button
         attach_img = ctk.CTkImage(Image.open(IMAGES['attachment']), size=(20, 20))
@@ -874,93 +899,107 @@ class ChatWindow:
                             }
                         )
                     print(message)
+        except ConnectionAbortedError as e:
+            print("Connection aborted", e)
+            return
+        except ConnectionError as e:
+            print("Connection error", e)
+            return
         except Exception as e:
-            print("error received message", e)
+            print("error received message", type(e), e)
+            Utility.Message.display('An error occurred while receiving message', 2)
 
-    def send_message(
-        self, event=None,
-    ):
-        print(event)
-        # Get the message from the input box
-        message = self.input_box.get()
-        # display the message to the user
-        user = self.User(message, self.message_area, self.profile_address)
-        user.draw()
-        # add the time stamp
-        timestamp = str(datetime.datetime.now())
-        timestamp = timestamp.replace(":", "/")
-        message += f":{timestamp}"
-        # divide the message into chunks
-        if message != "":
-            limit = 100
-            mes_len = len(message)
-            mes_chunk = []
-            for i in range(0, mes_len, limit):
-                s = ""
-                if i + limit < mes_len:
-                    for j in range(i, i + limit):
-                        s += message[j]
-                else:
-                    for j in range(i, mes_len):
-                        s += message[j]
-                mes_chunk.append(s)
-            # append the message into the conversation list
-            mes = message.split(":")
-            self.conversation.append(
-                {
-                    'uname': self.name,
-                    "pic": self.profile_address,
-                    "message": mes[0],
-                    "private": False,
-                    "time": timestamp,
-                    'image': ''
-                }
-            )
-            print(self.conversation)
-            # Send the message to the server
-            CLIENT_SOCKET.send(
-                rsa.encrypt(f"@{len(mes_chunk)}#".encode("utf-8"), self.public_partner)
-            )
-            time.sleep(0.05)
-            for i in mes_chunk:
-                CLIENT_SOCKET.send(rsa.encrypt(i.encode("utf-8"), self.public_partner))
-                time.sleep(0.05)
-            self.input_box.delete(0, ctk.END)
+    def send_message(self):
+        if CAN_TEXT:
+            # Get the message from the input box
+            message = self.input_box.get()
+            if message:
+                try:
+                    # display the message to the user
+                    user = self.User(message, self.message_area, self.profile_address)
+                    user.draw()
+                    # add the time stamp
+                    timestamp = str(datetime.datetime.now())
+                    timestamp = timestamp.replace(":", "/")
+                    message += f":{timestamp}"
+                    # divide the message into chunks
+                    if message != "":
+                        limit = 100
+                        mes_len = len(message)
+                        mes_chunk = []
+                        for i in range(0, mes_len, limit):
+                            s = ""
+                            if i + limit < mes_len:
+                                for j in range(i, i + limit):
+                                    s += message[j]
+                            else:
+                                for j in range(i, mes_len):
+                                    s += message[j]
+                            mes_chunk.append(s)
+                        # append the message into the conversation list
+                        mes = message.split(":")
+                        self.conversation.append(
+                            {
+                                'uname': self.name,
+                                "pic": self.profile_address,
+                                "message": mes[0],
+                                "private": False,
+                                "time": timestamp,
+                                'image': ''
+                            }
+                        )
+                        print(self.conversation)
+                        # Send the message to the server
+                        CLIENT_SOCKET.send(
+                            rsa.encrypt(f"@{len(mes_chunk)}#".encode("utf-8"), self.public_partner)
+                        )
+                        time.sleep(0.05)
+                        for i in mes_chunk:
+                            CLIENT_SOCKET.send(rsa.encrypt(i.encode("utf-8"), self.public_partner))
+                            time.sleep(0.05)
+                        self.input_box.delete(0, ctk.END)
+                except Exception as e:
+                    print('Error sending message', e)
+                    Utility.Message.display('Error while sending message, please try again', 2)
 
     def send_pic(self):
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            # copying the image and saving it to app's storage for safer use
-            img = Image.open(file_path)
-            img_name = str(datetime.datetime.now()).replace(':', '.')  # same as current date
-            image_path = IMAGES_FOLD_PATH.replace('/', '\\') + img_name + '.png'
-            save_path = STORE_PATH + '\\' + image_path
-            print(save_path)
-            img.save(save_path)
-            img.close()
+        try:
+            file_path = filedialog.askopenfilename()
+            if file_path:
+                # copying the image and saving it to app's storage for safer use
+                img = Image.open(file_path)
+                img_name = str(datetime.datetime.now()).replace(':', '.')  # same as current date
+                image_path = IMAGES_FOLD_PATH.replace('/', '\\') + img_name + '.png'
+                save_path = STORE_PATH + '\\' + image_path
+                print(save_path)
+                img.save(save_path)
+                img.close()
 
-            # send the pic to server
-            CLIENT_SOCKET.send(rsa.encrypt('@picture'.encode("utf-8"), self.public_partner))
-            time.sleep(0.05)
-            CLIENT_SOCKET.send(rsa.encrypt(img_name.encode("utf-8"), self.public_partner))
-            time.sleep(0.05)
-            self.send_file(CLIENT_SOCKET, save_path)
+                # send the pic to server
+                CLIENT_SOCKET.send(rsa.encrypt('@picture'.encode("utf-8"), self.public_partner))
+                time.sleep(0.05)
+                CLIENT_SOCKET.send(rsa.encrypt(img_name.encode("utf-8"), self.public_partner))
+                time.sleep(0.05)
+                self.send_file(CLIENT_SOCKET, save_path)
 
-            self.conversation.append(
-                {
-                    'uname': self.name,
-                    "pic": self.profile_address,
-                    "message": '',
-                    "private": False,
-                    "time": img_name.replace('.', '/'),
-                    'image': image_path
-                }
-            )
-            print(self.conversation)
+                self.conversation.append(
+                    {
+                        'uname': self.name,
+                        "pic": self.profile_address,
+                        "message": '',
+                        "private": False,
+                        "time": img_name.replace('.', '/'),
+                        'image': image_path
+                    }
+                )
+                print(self.conversation)
 
-            # display the message to the user
-            user = self.User('', self.message_area, self.profile_address, self.frame)
-            user.draw_pic(image_path)
+                # display the message to the user
+                user = self.User('', self.message_area, self.profile_address, self.frame)
+                user.draw_pic(image_path)
+        except Exception as e:
+            print('Error send picture', e)
+            Utility.Message.display('Error while sending picture, please try again', 2)
 
     def close_window(self):
         # Disconnect from the server and exit the application
@@ -1001,7 +1040,7 @@ class Client:
         password,
     ):
 
-        root.title("Intelli Chat - Friends")
+        root.title(f"Intelli Chat - {Utility.FRIEND_CHAT_NAME}")
         chat_window = ChatWindow(
             root,
             name,

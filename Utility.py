@@ -9,6 +9,7 @@ import CTkListbox
 from dotenv import load_dotenv
 import numpy as np
 from PIL import Image, ImageDraw
+from tkVideoPlayer import TkinterVideo
 
 ###################
 
@@ -34,7 +35,7 @@ IMAGES = {'favicon': 'Resources/images/favicon.ico',
           'pass hide': 'Resources/images/pass_hide.png',
           'pass show': 'Resources/images/pass_show.png',
           'pattern': 'Resources/images/pattern_Home.png',
-          'bg': 'Resources/images/Bg_image.png',
+          'bg': ('Resources/images/light bg.jpg', 'Resources/images/bg_dark.png'),
           'bot': 'Resources/images/bot.png',
           'send': 'Resources/images/send.png',
           'user': 'Resources/images/user.png',
@@ -43,6 +44,11 @@ IMAGES = {'favicon': 'Resources/images/favicon.ico',
           'def_profile': 'Resources/images/default profile picture.jpg',
           'right_arrow': ('Resources/images/right_arrow_white.png', 'Resources/images/right_arrow_white.png'),
           }
+ANIM_FOLD_PATH = {
+    'AI': ('Resources/images/bot dark', 'Resources/images/bot dark'),  # (<light>, <dark>)
+    'friends': ('Resources/images/friends dark', 'Resources/images/friends dark'),  # (<light>, <dark>)
+    'setting': ('Resources/images/settings dark', 'Resources/images/settings dark'),
+}
 # Fonts
 FONT = {
     "Comic": ("Comic Sans MS", 13),
@@ -52,7 +58,11 @@ FONT = {
     'In_field': ('Comic Sans MS', 20),
     'error': ('Comic Sans MS', 15)
 }
+BG_VID_PATH = ('Resources/light bg.mp4', 'Resources/dark bg.mp4')  # taking too long to load so not in use
 BG_IMG_SIZE = (1920, 1080)
+APPEARANCE_MODE = 1  # 0- light, 1- dark
+AI_CHAT_NAME = 'Ask me'
+FRIEND_CHAT_NAME = 'Friend Zone'
 color_palate_light_1 = [
     '#ECECF4',
     "#685D82",
@@ -92,14 +102,14 @@ color_palate_dark_2 = [
 ]
 COLOR = {
     'user': {
-        'frame-fg': ('#00b3b3', '#1c497d'),
+        'frame-fg': ('#B5D7F3', '#1c497d'),
         'frame-border': ('#009999', '#2e7ad1'),
-        't-box-fg': ('#00e6e6', '#205592'),
+        't-box-fg': ('#BEE2FF', '#205592'),
     },
     'other-cl-disp': {
-        'frame-fg': ('#60cd32', '#38761d'),
+        'frame-fg': ('#B1CD9E', '#38761d'),
         'frame-border': ('#4da428', '#60cd32'),
-        't-box-fg': ('#80d75b', '#439023')
+        't-box-fg': ('#DCFFC4', '#439023')
     },
     'other cl': {
         'frame-fg': ("#8C84A0", '#211f2c'),
@@ -272,8 +282,108 @@ class Images:
         draw = ImageDraw.Draw(lum_img)
         draw.pieslice([(0, 0), (h, w)], 0, 360, fill=255)
         img_arr = np.array(img)
+        img.close()
         lum_img_arr = np.array(lum_img)
 
         final_img_arr = np.dstack((img_arr, lum_img_arr))
         return Image.fromarray(final_img_arr)
 
+
+class AnimatedButton(ctk.CTkButton):
+    def __init__(
+            self,
+            master,
+            light_path,
+            dark_path,
+            pic_size=(30, 30),
+            anim_speed=20,
+            **kwargs
+    ):
+        # animation setup
+        self.frames = AnimatedButton.import_folders(light_path, dark_path, pic_size)
+        self.frame_index = 0
+        self.animation_length = len(self.frames) - 1
+        self.animation_status = 'start'
+
+        super().__init__(
+            master,
+            image=self.frames[self.frame_index],
+            **kwargs
+        )
+        self.animate(anim_speed)
+
+    @staticmethod
+    def import_folders(light, dark, size):
+        image_paths = []
+        for path in (light, dark):
+            ''' 
+            walk() gives [<folder>,[<sub folder>],[<list of files>]
+            so '_' ignores the <folder> and '__' ignores the <sub folder>
+            '''
+            for _, __, img_data in os.walk(path):
+                sorted_data = sorted(
+                    img_data,
+                    key=lambda x: int(x.split('.')[0][-4:])  # key performs any function on the data before applying sort
+                )
+                # performs the before operation first and then add it to the list
+                full_path_data = [path + '/' + item for item in sorted_data]
+                image_paths.append(full_path_data)
+        # '*' unpacks the image paths
+        # zip merges 1st element of 1st list with 1st element of 2nd list as one tuple for the whole list
+        # and creates an iterable of those tuples
+        image_paths = list(zip(*image_paths))
+
+        ctk_images = []
+        for image_path in image_paths:
+            ctk_image = ctk.CTkImage(
+                light_image=Image.open(image_path[0]),
+                dark_image=Image.open(image_path[1]),
+                size=size
+            )
+            ctk_images.append(ctk_image)
+
+        return ctk_images
+
+    def animate(self, anim_speed):
+        if self.animation_status == 'start':
+            self.frame_index += 1
+            self.configure(image=self.frames[self.frame_index])
+
+            if self.frame_index < self.animation_length:
+                self.after(anim_speed, lambda: self.animate(anim_speed))
+            else:
+                self.animation_status = 'end'
+        if self.animation_status == 'end':
+            self.frame_index -= 1
+            self.configure(image=self.frames[self.frame_index])
+
+            if self.frame_index > 0:
+                self.after(anim_speed, lambda: self.animate(anim_speed))
+            else:
+                self.animation_status = 'start'
+                self.after(anim_speed, lambda: self.animate(anim_speed))
+
+
+class Video(TkinterVideo):
+    def __init__(self, master, video_file_path, **kwargs):
+        super().__init__(master=master, **kwargs)
+        self.set_resampling_method(1)
+        self.bind("<<Ended>>", self.video_ended)
+        self.video_file_path = video_file_path
+        self.bg_play(video_file_path)
+
+    def video_ended(self, event):
+        self.play()
+
+    def bg_play(self, video_file_path):
+        try:
+            self.load(video_file_path)
+            self.play()
+        except Exception as e:
+            print("Unable to load the file", e)
+
+    def play_pause(self):
+        if self.is_paused():
+            self.play()
+        else:
+            self.pause()
