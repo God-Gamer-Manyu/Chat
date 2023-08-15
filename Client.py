@@ -577,14 +577,17 @@ class ChatWindow:
         self.clients_widgets = {}
 
         # BG
-        bg_img = Image.open(IMAGES['bg'])
-        bg_img = ctk.CTkImage(bg_img, size=BG_SIZE)
+        bg_img = ctk.CTkImage(*map(Image.open, IMAGES['bg']), size=BG_SIZE)
         bg_l1 = ctk.CTkLabel(master=master, image=bg_img, text='')
         bg_l1.pack(fill='both', expand=True)
 
         # Main placeholder
         self.frame = ctk.CTkFrame(
-            master=bg_l1, width=size_x - 50, height=size_y - 50, corner_radius=15, fg_color=COLOR['chat']['darkest']
+            master=bg_l1,
+            width=size_x - 50,
+            height=size_y - 50,
+            fg_color=COLOR['chat']['darkest'],
+            bg_color=COLOR['chat']['darkest']
         )
         self.frame.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
 

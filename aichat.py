@@ -32,8 +32,9 @@ COLOR = Utility.COLOR
 # method which gets the output from open AI
 def ask_openai(prompt):
     try:
-        # imp: get new upi
-        openai.api_key = os.getenv('AI_API_KEY')
+        # imp: uncomment when building exe for actual board practicals
+        # openai.api_key = os.getenv('AI_API_KEY')
+        openai.api_key = 'disabled for testing'
 
         # start_sequence = "\nAI:"
         # restart_sequence = "\nHuman: "
@@ -73,6 +74,8 @@ class AiChat:
             output = ask_openai(inp)    # getting the output
         except Exception as e:
             print(e)
+            if 'Incorrect API key' in str(e):
+                return [('', 'disabled Temporarily, will be enabled during actual practicals')]
             return [('', 'Error while connecting to the internet, please check your internet connection')]
         self.history.append((message, '\n' + output, str(datetime.datetime.now())))   # updating the history
         return self.history  # returning the whole history
@@ -88,8 +91,7 @@ class AiChat:
         app.protocol("WM_DELETE_WINDOW", close_window)
 
         # BG
-        bg_img = Image.open(IMAGES['bg'])
-        bg_img = ctk.CTkImage(bg_img, size=BG_SIZE)
+        bg_img = ctk.CTkImage(*map(Image.open, IMAGES['bg']), size=BG_SIZE)
         bg_l1 = ctk.CTkLabel(master=app, image=bg_img, text='')
         bg_l1.pack(fill='both', expand=True)
 
@@ -98,8 +100,8 @@ class AiChat:
             master=bg_l1,
             width=size_x - 50,
             height=size_y - 50,
-            corner_radius=15,
-            fg_color=COLOR['chat']['darkest']
+            fg_color=COLOR['chat']['darkest'],
+            bg_color=COLOR['chat']['darkest']
         )
         frame.place(relx=.5, rely=.5, anchor=ctk.CENTER)
 
@@ -306,11 +308,12 @@ class AiChat:
                     else:
                         mes += ' ' + i
                     ct += 1
+
                 client_txt = ctk.CTkLabel(
                     master=self,
                     font=FONT['Comic'],
                     corner_radius=7,
-                    text=res,
+                    text=mes,
                     anchor="w",
                     justify='left',
                     fg_color=COLOR['other cl']['t-box-fg'],
