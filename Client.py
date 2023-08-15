@@ -436,6 +436,7 @@ class ChatWindow:
             )
             client_name_l.insert(ctk.END, username)
             client_name_l.grid(row=0, column=1, pady=5, padx=5, sticky='ne')
+            client_name_l.configure(state='disabled')
 
     @staticmethod
     def send_file(client_socket, file_dir):
@@ -916,6 +917,7 @@ class ChatWindow:
         if CAN_TEXT:
             # Get the message from the input box
             message = self.input_box.get()
+            message = message.strip()
             if message:
                 try:
                     # display the message to the user
