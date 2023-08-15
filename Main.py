@@ -174,6 +174,7 @@ class Main:
         )
         label.grid(column=0, row=1, padx=25, pady=(5, 15), sticky='n')
 
+        # urgent: load the animation file only once
         # AI button
         ai_btn = Utility.AnimatedButton(
             master=frame,
