@@ -22,7 +22,6 @@ from Utility import DataStorePath
 
 # later: comment, document, fix light warnings, optimise code and use tkinter class wherever possible to organise code
 # later: For approach to optimise tkinter ui - https://www.youtube.com/watch?v=0y1kYxOp8hE&list=PLpMixYKO4EXflJFPhTvZOVAbs7lBdEBSa&index=11
-# later: add a start screen video
 # urgent: Remove storage files as it reflects while building exe
 ####################
 import ctypes
@@ -112,13 +111,17 @@ class Main:
         app.iconbitmap(IMAGES['logo_ico'])
         app.wm_iconbitmap(IMAGES['logo_ico'])
 
-        # urgent check Background with teacher
-
         bg_img = ctk.CTkImage(*map(Image.open, IMAGES['bg']), size=BG_SIZE)
         bg_l1 = ctk.CTkLabel(master=app, image=bg_img, text='')
         bg_l1.pack(fill='both', expand=True)
 
-        frame = ctk.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15, fg_color=COLOR['main']['darkest'])
+        frame = ctk.CTkFrame(
+            master=bg_l1,
+            width=300,
+            height=500,
+            fg_color=COLOR['main']['darkest'],
+            bg_color=COLOR['main']['darkest'],
+        )
         frame.place(relx=.5, rely=.5, anchor=ctk.CENTER)
         frame.grid_propagate(False)  # Fix the size
 
@@ -206,7 +209,7 @@ class Main:
         friend_btn.grid(column=0, row=3, padx=25, pady=8, sticky='n')
 
         class SettingPanel(ctk.CTkFrame):
-            def __init__(self, parent, start_pos, end_pos, main_class_object, bg_li, root,  anim_speed=0.008):
+            def __init__(self, parent, start_pos, end_pos, main_class_object, bg_li, master, anim_speed=0.008, corner_radius=0):
                 """
                 Creates a setting panel in any window
                 :param parent: binding tkinter widget
@@ -215,9 +218,9 @@ class Main:
                 :param main_class_object: the object that contains profile address and username as attributes (mostly pass self)
                 :param anim_speed: speed of animation
                 :param bg_li: the background image
-                :param root: the root window
+                :param master: the root window
                 """
-                super().__init__(parent, corner_radius=5, fg_color=COLOR['main']['darkest'])
+                super().__init__(parent, corner_radius=corner_radius, fg_color=COLOR['main']['darkest'], bg_color=COLOR['main']['darkest'])
 
                 # general attributes
                 self.start_pos = start_pos
@@ -225,7 +228,7 @@ class Main:
                 self.width = abs(start_pos - end_pos)
                 self.anim_speed = anim_speed
                 self.bg_li = bg_li
-                self.root = root
+                self.root = master
 
                 # positioning children
                 profile_pic_address = IMAGES['def_profile']  # Profile picture display
@@ -367,7 +370,6 @@ class Main:
                     Utility.Message.display('Please Login', 0)
 
             def change_mode(self):
-                #bg_play()
                 match self.appearance_mode.get():
                     case 1:
                         ctk.set_appearance_mode('dark')
@@ -434,7 +436,13 @@ class Main:
         if login_widget:
             login_widget.destroy()
 
-        frame = ctk.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15, fg_color=COLOR['main']['darkest'])
+        frame = ctk.CTkFrame(
+            master=bg_l1,
+            width=300,
+            height=500,
+            fg_color=COLOR['main']['darkest'],
+            bg_color=COLOR['main']['darkest']
+        )
         frame.place(relx=.5, rely=.5, anchor=ctk.CENTER)
         frame.grid_propagate(False)  # Fix the size
 
@@ -612,7 +620,13 @@ class Main:
         entry.bind('<Return>', lambda event: enter())  # for enter key
 
     def sign_up(self, bg_l1, app):
-        frame = ctk.CTkFrame(master=bg_l1, width=300, height=500, corner_radius=15, fg_color=COLOR['main']['darkest'])
+        frame = ctk.CTkFrame(
+            master=bg_l1,
+            width=300,
+            height=500,
+            fg_color=COLOR['main']['darkest'],
+            bg_color=COLOR['main']['darkest']
+        )
         frame.place(relx=.5, rely=.5, anchor=ctk.CENTER)
         frame.grid_propagate(False)  # Fix the size
 
@@ -819,6 +833,13 @@ if __name__ == '__main__':
     height = root.winfo_screenheight() - 290
     # setting tkinter window size
     root.geometry("%dx%d+0+0" % (width, height))
+
+    def on_video_end():
+        intro.destroy()
+        main.run(root)
+
+    intro = Utility.Video(root, 'Resources/Intro.mp4', on_video_end, scaled=True, keep_aspect=False, consistant_frame_rate=True)
+    intro.place(relx=0, rely=0, relwidth=1, relheight=1)
     # set tkinter window minimum size
     root.minsize(1200, 712)  # the values are adjusted (when tkinter converts it becomes [1500, 890])
 
@@ -834,4 +855,5 @@ if __name__ == '__main__':
         root.geometry(f'{SIZE_X}x{SIZE_Y}+{x_coordinate}+{y_coordinate}')  # Set screen size
 
     root.bind('<Escape>', lambda event: resizing_mid())
-    main.run(root)
+
+    root.mainloop()

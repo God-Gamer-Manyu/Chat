@@ -1,4 +1,5 @@
 import os
+import threading
 
 import pygame
 # later: comment document and fix light warnings
@@ -10,10 +11,11 @@ from dotenv import load_dotenv
 import numpy as np
 from PIL import Image, ImageDraw
 from tkVideoPlayer import TkinterVideo
+from tkvideo import tkvideo
 
 ###################
 
-pygame.mixer.init()  # initialising pygame
+thread = threading.Thread(target=pygame.mixer.init).start()  # initialising pygame
 
 # Sound effects
 SOUND_EFFECTS = {
@@ -365,22 +367,32 @@ class AnimatedButton(ctk.CTkButton):
 
 
 class Video(TkinterVideo):
-    def __init__(self, master, video_file_path, **kwargs):
+    def __init__(self, master, video_file_path, end_function=None, **kwargs):
         super().__init__(master=master, **kwargs)
+        self.ended = False
+        self.end_function = end_function
         self.set_resampling_method(1)
-        self.bind("<<Ended>>", self.video_ended)
+        self.bind("<<Ended>>", lambda event: self.video_ended())
         self.video_file_path = video_file_path
-        self.bg_play(video_file_path)
-
-    def video_ended(self, event):
-        self.play()
-
-    def bg_play(self, video_file_path):
         try:
             self.load(video_file_path)
-            self.play()
         except Exception as e:
             print("Unable to load the file", e)
+        self.bg_play()
+
+    def video_ended(self):
+        self.ended = True
+        if self.end_function is not None:
+            self.end_function()
+        else:
+            self.play()
+
+    def has_video_end(self):
+        return self.ended
+
+    def bg_play(self):
+        self.ended = False
+        self.play()
 
     def play_pause(self):
         if self.is_paused():

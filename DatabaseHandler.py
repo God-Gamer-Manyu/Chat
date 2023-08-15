@@ -2,6 +2,7 @@ import pymysql
 # later: comment document and fix light warnings
 TABLE_NAME = 'User'
 CHAR_LEN = 50
+
 db = pymysql.connect(
     host='localhost',
     user='Tester',  # 'GodGamer'
