@@ -827,6 +827,10 @@ if __name__ == '__main__':
     ctk.set_default_color_theme('dark-blue')
 
     root = ctk.CTk()  # initiate custom Tkinter
+    root.title('Intelli chat')
+    # set the icon for the window
+    root.iconbitmap(IMAGES['logo_ico'])
+    root.wm_iconbitmap(IMAGES['logo_ico'])
 
     # getting screen width and height of display
     width = root.winfo_screenwidth()
