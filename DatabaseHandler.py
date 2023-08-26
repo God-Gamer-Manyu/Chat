@@ -1,24 +1,50 @@
+import threading
+
 import pymysql
 # todo: comment document and fix light warnings
 TABLE_NAME = 'User'
 CHAR_LEN = 50
 
-db = pymysql.connect(
-    host='localhost',
-    user='Tester',  # 'GodGamer'
-    passwd='Tester@2023',  # 'GodGamerData@2023'
-    database='Chat'
-)
-cursor = db.cursor()
+# db = pymysql.connect(
+#     host='localhost',
+#     user='Tester',  # 'GodGamer'
+#     passwd='Tester@2023',  # 'GodGamerData@2023'
+#     database='Chat'
+# )
+# cursor = db.cursor()
+db = None
+cursor = None
+
+
+def get_db():
+    global db, cursor
+    try:
+        db = pymysql.connect(
+            host='localhost',
+            user='Tester',  # 'GodGamer'
+            passwd='Tester@2023',  # 'GodGamerData@2023'
+            database='Chat'
+        )
+        cursor = db.cursor()
+        print(type(cursor))
+    except Exception as e:
+        print(e)
+
+
+threading.Thread(target=get_db).start()
 # cursor.execute('CREATE TABLE User (name VARCHAR(50) NOT NULL PRIMARY KEY, pass VARCHAR(50) NOT NULL)')
 
 
 class DataBaseHandler:
     def __init__(self):
+        if cursor is None:
+            get_db()
         pass
 
     @staticmethod
     def adduser(username, password):
+        if cursor is None:
+            get_db()
         out = DataBaseHandler.check_user(username, password)
         if not out[0] and out[1] != 'Password is incorrect':
             cursor.execute(f'INSERT INTO {TABLE_NAME} (name, pass) VALUES (%s,%s)', (username, password))
@@ -31,6 +57,8 @@ class DataBaseHandler:
 
     @staticmethod
     def check_user(username, password):
+        if cursor is None:
+            get_db()
         cursor.execute(f'SELECT * FROM {TABLE_NAME}')
         for x in cursor:
             if x[0] == username:
@@ -42,18 +70,24 @@ class DataBaseHandler:
 
     @staticmethod
     def delete_user(username):
+        if cursor is None:
+            get_db()
         cursor.execute(f'DELETE FROM {TABLE_NAME} where name = (%s)', (username,))
         print(f'{username} deleted')
         db.commit()
 
     @staticmethod
     def display_table():
+        if cursor is None:
+            get_db()
         cursor.execute(f'SELECT * FROM {TABLE_NAME}')
         for x in cursor:
             print(x)
 
     @staticmethod
     def delete_all():
+        if cursor is None:
+            get_db()
         cursor.execute(f'SELECT name FROM {TABLE_NAME}')
         key = []
         for x in cursor:
@@ -63,7 +97,7 @@ class DataBaseHandler:
         print(f'Deleted all data from {TABLE_NAME}')
 
 
-data = DataBaseHandler()
-# data.delete_all()
-
-data.display_table()
+# data = DataBaseHandler()
+# # data.delete_all()
+#
+# data.display_table()

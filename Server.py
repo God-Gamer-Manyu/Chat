@@ -22,6 +22,8 @@ class ChatRoom:
 
     def add_client(self, client_name, client_socket, profile_pic):
         self.client_usernames[client_name] = {"pic": profile_pic}
+        if client_name in self.clients.keys():
+            self.clients[client_name].close()
         self.clients[client_name] = client_socket
 
         # send client names to others
@@ -347,8 +349,9 @@ class ChatRoom:
                             }
                         )
                         self.send_mes_pic(client_name, message + ":" + timestamp)
-                print('line - 317 - ', self.conversation)
+                #print('line - 350 - ', self.conversation)
             except Exception as e:  # removing client and ending the process
+                self.clients[client_name].close()
                 self.remove_client(client_name)
                 print(f"{client_name} left the chat room ", str(e))
                 break

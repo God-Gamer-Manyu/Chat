@@ -11,11 +11,13 @@ from dotenv import load_dotenv
 import numpy as np
 from PIL import Image, ImageDraw
 from tkVideoPlayer import TkinterVideo
-from tkvideo import tkvideo
 
 ###################
 
 thread = threading.Thread(target=pygame.mixer.init).start()  # initialising pygame
+
+HOST = "localhost"
+PORT = 8888
 
 # Sound effects
 SOUND_EFFECTS = {
@@ -80,7 +82,7 @@ color_palate_light_2 = [
     '#2e8cf3',
     '#ffffff',
     '#f2f5fa',
-    '#f8fcff',
+    '#F8FCFF',
     '#f4f8fb'
 ]
 color_palate_dark_1 = [
@@ -146,6 +148,9 @@ COLOR = {
     }
 }
 
+AI_IMAGE_SEQUENCE = None  # image sequence
+FRIEND_IMAGE_SEQUENCE = None  # image sequence
+SETTING_IMAGE_SEQUENCE = None  # image sequence
 
 collector = []
 console_toggle = False
@@ -299,10 +304,14 @@ class AnimatedButton(ctk.CTkButton):
             dark_path,
             pic_size=(30, 30),
             anim_speed=20,
+            source=None,
             **kwargs
     ):
         # animation setup
-        self.frames = AnimatedButton.import_folders(light_path, dark_path, pic_size)
+        if not source:
+            self.frames = AnimatedButton.import_folders(light_path, dark_path, pic_size)
+        else:
+            self.frames = source
         self.frame_index = 0
         self.animation_length = len(self.frames) - 1
         self.animation_status = 'start'

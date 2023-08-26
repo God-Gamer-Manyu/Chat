@@ -48,8 +48,8 @@ STORE_PATH = DataStorePath.get_appdata()
 
 
 # Set up the server host and port to connect to (note to change the values also in client.py)
-HOST = 'localhost'
-PORT = 8888
+HOST = Utility.HOST
+PORT = Utility.PORT
 SIZE_X, SIZE_Y = 1280, 720
 TITLE = 'Chat'
 # fonts
@@ -174,7 +174,6 @@ class Main:
         )
         label.grid(column=0, row=1, padx=25, pady=(5, 15), sticky='n')
 
-        # urgent: load the animation file only once
         # AI button
         ai_btn = Utility.AnimatedButton(
             master=frame,
@@ -188,7 +187,8 @@ class Main:
             command=ai,
             text_color=COLOR['font']['1'],
             fg_color=COLOR['button']['normal'],
-            hover_color=COLOR['button']['hover']
+            hover_color=COLOR['button']['hover'],
+            source=Utility.AI_IMAGE_SEQUENCE
         )
         ai_btn.grid(column=0, row=2, padx=25, pady=8, sticky='n')
 
@@ -205,7 +205,8 @@ class Main:
             command=friends,
             text_color=COLOR['font']['1'],
             fg_color=COLOR['button']['normal'],
-            hover_color=COLOR['button']['hover']
+            hover_color=COLOR['button']['hover'],
+            source=Utility.FRIEND_IMAGE_SEQUENCE
         )
         friend_btn.grid(column=0, row=3, padx=25, pady=8, sticky='n')
 
@@ -417,7 +418,8 @@ class Main:
             command=setting_panel.start_animate,
             text_color=COLOR['font']['1'],
             fg_color=COLOR['button']['normal'],
-            hover_color=COLOR['button']['hover']
+            hover_color=COLOR['button']['hover'],
+            source=Utility.SETTING_IMAGE_SEQUENCE
         )
         setting_btn.grid(column=0, row=4, padx=25, pady=8, sticky='n')
 
@@ -861,4 +863,12 @@ if __name__ == '__main__':
 
     root.bind('<Escape>', lambda event: resizing_mid())
 
+    def get_btn_images():
+        Utility.AI_IMAGE_SEQUENCE = Utility.AnimatedButton.import_folders(Utility.ANIM_FOLD_PATH['AI'][0], Utility.ANIM_FOLD_PATH['AI'][1], (30, 30))
+        Utility.FRIEND_IMAGE_SEQUENCE = Utility.AnimatedButton.import_folders(Utility.ANIM_FOLD_PATH['friends'][0], Utility.ANIM_FOLD_PATH['friends'][1], (30, 30))
+        Utility.SETTING_IMAGE_SEQUENCE = Utility.AnimatedButton.import_folders(Utility.ANIM_FOLD_PATH['setting'][0], Utility.ANIM_FOLD_PATH['setting'][1], (30, 30))
+
+    threading.Thread(target=get_btn_images).start()
     root.mainloop()
+
+
