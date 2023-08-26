@@ -45,8 +45,8 @@ CLIENT_SOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # constants ##
 # Set up the server host and port to connect to (note to change the values also in Main.py)
-HOST = "localhost"
-PORT = 8888
+HOST = Utility.HOST
+PORT = Utility.PORT
 PROFILE_PIC_PATH = 'Resources/profile_pic'  # '/' already used in string path
 MEMORY = Utility.MEMORY
 IMAGES = Utility.IMAGES
@@ -67,6 +67,10 @@ CAN_TEXT = True
 # decryption keys
 public_key, private_key = rsa.newkeys(1024)
 COLOR = Utility.COLOR
+
+# handles rejoining
+IS_REJOINING = False
+IS_RECEIVING_MESSAGES = True
 
 
 # clamp values
@@ -482,33 +486,16 @@ class ChatWindow:
             print('error receiving pic:-', e)
             Utility.Message.display('Error occurred while receiving picture', 2)
 
-    def __init__(
-        self,
-        master,
-        name,
-        size_x,
-        size_y,
-        client_socket,
-        profile_address,
-        conversation,
-        history,
-        password,
-    ):
-        self.abort = False
-        self.password = password
-        self.profile_address = profile_address
-        self.conversation = conversation  # {'uname':<uname>,'pic':<profile_address>, 'message':<message>, 'private':<private>, 'time':<time_stamp>, 'image':<image address>}
+    def setup_client(self, client_socket):
         # Connect to the server
         global CLIENT_SOCKET
         CLIENT_SOCKET = client_socket
         print(CLIENT_SOCKET)
 
-        # username
-        self.name = name
         CLIENT_SOCKET.sendall(self.name.encode("utf-8"))
         CLIENT_SOCKET.recv(1024).decode()
         # send profile pic
-        self.send_file(CLIENT_SOCKET, profile_address)
+        self.send_file(CLIENT_SOCKET, self.profile_address)
         # send public key
         CLIENT_SOCKET.send(public_key.save_pkcs1("PEM"))
 
@@ -519,7 +506,7 @@ class ChatWindow:
         cons_length = eval(
             rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode("utf-8")
         )
-        CLIENT_SOCKET.send(f"{name}received cons_length".encode())
+        CLIENT_SOCKET.send(f"{self.name}received cons_length".encode())
 
         try:
             conversation_ser = []
@@ -527,13 +514,13 @@ class ChatWindow:
                 cons_len = eval(
                     rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode("utf-8")
                 )
-                CLIENT_SOCKET.send(f"{name}received cons_len".encode())
+                CLIENT_SOCKET.send(f"{self.name}received cons_len".encode())
                 rec = ""
                 for j in range(cons_len):
                     rec += rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode(
                         "utf-8"
                     )
-                    CLIENT_SOCKET.send(f"{name}received client".encode())
+                    CLIENT_SOCKET.send(f"{self.name}received client".encode())
                 rec = eval(rec)
                 print("previous cons", rec)
                 conversation_ser.append(rec)
@@ -573,9 +560,30 @@ class ChatWindow:
         # for the server to know that all conversation have been processed
         CLIENT_SOCKET.send("All conversation received".encode())
 
+    def __init__(
+        self,
+        master,
+        name,
+        size_x,
+        size_y,
+        client_socket,
+        profile_address,
+        conversation,
+        history,
+        password,
+    ):
+        self.abort = False
+        self.password = password
+        self.profile_address = profile_address
+        self.conversation = conversation  # {'uname':<uname>,'pic':<profile_address>, 'message':<message>, 'private':<private>, 'time':<time_stamp>, 'image':<image address>}
+        # username
+        self.name = name
         self.master = master
         self.clients = {}  # <name>: {'pic': <profile_address>}
         self.clients_widgets = {}
+
+        # Connect to the server
+        self.setup_client(client_socket)
 
         # BG
         bg_img = ctk.CTkImage(*map(Image.open, IMAGES['bg']), size=BG_SIZE)
@@ -762,6 +770,7 @@ class ChatWindow:
         self.receive_thread.start()
 
     def receive_messages(self, public_partner):
+        global IS_RECEIVING_MESSAGES
         try:
             while not self.abort:
                 # Receive messages from the server
@@ -815,6 +824,15 @@ class ChatWindow:
                             # Append the message to the message box in the GUI
                             ocl = self.OthCLIENT(self.user_area, self.clients_widgets)
                             ocl.draw(key, message[key]['pic'])
+                        else:
+                            widget: ctk.CTkFrame
+                            for widget in self.user_area.winfo_children():
+                                if widget.winfo_name() == self.clients_widgets[key]:
+                                    widget.configure(fg_color=COLOR['other-cl-disp']['frame-fg'], border_color=COLOR['other-cl-disp']['frame-border'])
+                                    for i in widget.winfo_children():
+                                        if i.winfo_name() == "!ctktextbox":
+                                            i.configure(fg_color=COLOR['other-cl-disp']['t-box-fg'])
+                                    self.master.update()
 
                     # finding the clients who left
                     remove_client = []
@@ -824,13 +842,15 @@ class ChatWindow:
 
                     # removing the widget of clients who left
                     for key in remove_client:
-                        print("removed client", key)
+                        print("disabled client", key)
+                        widget: ctk.CTkFrame
                         for widget in self.user_area.winfo_children():
                             if widget.winfo_name() == self.clients_widgets[key]:
-                                widget.destroy()
-                                self.clients.pop(key)
+                                widget.configure(fg_color=Utility.COLOR['chat']['darkest'], border_color=Utility.COLOR['chat']['inside 2'])
+                                for i in widget.winfo_children():
+                                    if i.winfo_name() == '!ctktextbox':
+                                        i.configure(fg_color=Utility.COLOR['chat']['inside 1'])
                                 self.master.update()
-                                print("widget destroyed")
                 # handling incoming pictures
                 elif message.startswith('@picture#'):
                     sender_name = rsa.decrypt(CLIENT_SOCKET.recv(1024), private_key).decode("utf-8")
@@ -905,13 +925,41 @@ class ChatWindow:
                     print(message)
         except ConnectionAbortedError as e:
             print("Connection aborted", e)
+            IS_RECEIVING_MESSAGES = False
             return
         except ConnectionError as e:
             print("Connection error", e)
+            IS_RECEIVING_MESSAGES = False
             return
         except Exception as e:
             print("error received message", type(e), e)
-            Utility.Message.display('An error occurred while receiving message', 2)
+            global IS_REJOINING
+            IS_RECEIVING_MESSAGES = False
+            if not IS_REJOINING:
+                threading.Thread(target=self.rejoin_server).start()
+                IS_REJOINING = True
+            Utility.Message.display('Unable to connect to server', 2)
+
+    # tries to rejoin the server on connection lost
+    def rejoin_server(self):
+        global IS_REJOINING, IS_RECEIVING_MESSAGES
+        if not self.abort:
+            joined = False
+            while not joined:
+                if self.abort:
+                    break
+                try:
+                    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    client_socket.connect((HOST, PORT))
+                    self.setup_client(client_socket)
+                    IS_REJOINING = False
+                    joined = True
+                    if not IS_RECEIVING_MESSAGES:
+                        threading.Thread(target=self.receive_messages, args=(self.public_partner,)).start()
+                        IS_RECEIVING_MESSAGES = True
+                    break
+                except Exception as e:
+                    print(e)
 
     def send_message(self):
         if CAN_TEXT:
@@ -964,6 +1012,10 @@ class ChatWindow:
                             time.sleep(0.05)
                         self.input_box.delete(0, ctk.END)
                 except Exception as e:
+                    global IS_REJOINING
+                    if not IS_REJOINING:
+                        threading.Thread(target=self.rejoin_server).start()
+                        IS_REJOINING = True
                     print('Error sending message', e)
                     Utility.Message.display('Error while sending message, please try again', 2)
 
