@@ -7,15 +7,15 @@ import os
 import shutil
 import socket
 import threading
+import time
 
 import customtkinter as ctk
+import rsa
 from PIL import Image
 from cryptography.fernet import Fernet
 from customtkinter import filedialog
-from tkVideoPlayer import TkinterVideo
 
 import Client
-import DatabaseHandler
 import Utility
 import aichat
 from Utility import DataStorePath
@@ -27,6 +27,7 @@ from Utility import DataStorePath
 import ctypes
 
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
+
 
 def print(*args, **kwargs):
     # Converting anything other than string to string
@@ -64,6 +65,9 @@ BG_SIZE = Utility.BG_IMG_SIZE
 DPI = 96
 COLOR = Utility.COLOR
 login_widget: ctk.CTkFrame = None  # login widget instance
+
+# decryption keys to be used only in lobby
+public_key, private_key = rsa.newkeys(1024)
 
 
 class Main:
@@ -104,6 +108,7 @@ class Main:
         self.password = password
         self.profile_address = profile_address
         self.conversation = conversation
+        self.client_socket: socket.socket = None
 
     def run(self, app):
         app.title("Intelli chat")  # Set title
@@ -154,6 +159,19 @@ class Main:
                 try:
                     self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.client_socket.connect((HOST, PORT))
+
+                    # send public key to be used only in lobby
+                    self.client_socket.send(public_key.save_pkcs1("PEM"))
+                    # public key of lobby of server for decryption
+                    lobby_public_partner = rsa.PublicKey.load_pkcs1(self.client_socket.recv(1024))
+                    # sending type of join
+                    self.client_socket.send(
+                        rsa.encrypt(
+                            'direct'.encode("utf-8"),
+                            lobby_public_partner,
+                        )
+                    )
+                    time.sleep(0.05)
                 except Exception as e:
                     print(e)
                     errors = True
@@ -428,7 +446,7 @@ class Main:
     # limit characters
     @staticmethod
     def validate_input(text):
-        if len(text) <= DatabaseHandler.CHAR_LEN:
+        if len(text) <= Utility.U_NAME_CHAR_LEN:
             return True
         else:
             return False
@@ -455,8 +473,7 @@ class Main:
         # logo
         logo_img = Image.open(IMAGES['logo_png'])
         logo_img = ctk.CTkImage(logo_img, size=(216, 216))
-        label_logo = ctk.CTkLabel(master=frame, width=100, height=100, text='', image=logo_img,
-                                            anchor='center')
+        label_logo = ctk.CTkLabel(master=frame, width=100, height=100, text='', image=logo_img, anchor='center')
         label_logo.grid(column=0, row=0, padx=42, pady=(10, 0), sticky='n')
 
         label = ctk.CTkLabel(
@@ -536,37 +553,79 @@ class Main:
 
         def enter():
             if entry.get() != '' and entry_pass.get() != '':
-                out = DatabaseHandler.DataBaseHandler.check_user(entry.get(), entry_pass.get())
-                if out[0]:
-                    self.username = entry.get()
-                    self.password = entry_pass.get()
-                    if join:
-                        errors = False
-                        client = Client.Client()
-                        # Set up a TCP socket
-                        try:
-                            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                            self.client_socket.connect((HOST, PORT))
-                            print('login done', self.username)
-                        except Exception as e:
-                            print(e)
-                            errors = True
-                        if not errors:
+                try:
+                    self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.client_socket.connect((HOST, PORT))
+
+                    # send public key to be used only in lobby
+                    self.client_socket.send(public_key.save_pkcs1("PEM"))
+                    # public key of lobby of server for decryption
+                    lobby_public_partner = rsa.PublicKey.load_pkcs1(self.client_socket.recv(1024))
+                    # sending type of join to lobby
+                    self.client_socket.send(
+                        rsa.encrypt(
+                            'login'.encode("utf-8"),
+                            lobby_public_partner,
+                        )
+                    )
+                    time.sleep(0.05)
+                    # sending username
+                    self.client_socket.send(
+                        rsa.encrypt(
+                            entry.get().encode("utf-8"),
+                            lobby_public_partner,
+                        )
+                    )
+                    time.sleep(0.05)
+                    # sending password
+                    self.client_socket.send(
+                        rsa.encrypt(
+                            entry_pass.get().encode("utf-8"),
+                            lobby_public_partner,
+                        )
+                    )
+                    out = eval(rsa.decrypt(self.client_socket.recv(1024), private_key).decode("utf-8"))
+                    time.sleep(0.05)
+                    if out[0]:
+                        self.username = entry.get()
+                        self.password = entry_pass.get()
+                        print('login done', self.username)
+                        if join:
+                            print('hi')
+                            # send message to client to start chatroom
+                            self.client_socket.send(
+                                rsa.encrypt(
+                                    'start'.encode("utf-8"),
+                                    lobby_public_partner,
+                                )
+                            )
+                            time.sleep(0.05)
+                            client = Client.Client()
                             bg_l1.destroy()
                             client.run(app, self.username, SIZE_X, SIZE_Y, self.client_socket, self.profile_address,
                                        self.conversation, self.history, self.password)
+
                         else:
-                            Utility.Message.display('Server Error please try again', 2)
+                            if setting_panel:
+                                # send message to client to don't start chatroom
+                                self.client_socket.send(
+                                    rsa.encrypt(
+                                        "don't".encode("utf-8"),
+                                        lobby_public_partner,
+                                    )
+                                )
+                                time.sleep(0.05)
+                                setting_panel.display_elements_on_cond(self)
+                                Utility.Message.display('Logged In Successfully', 0)
+                                setting_panel.start_animate()
+                                back()
                     else:
-                        if setting_panel:
-                            setting_panel.display_elements_on_cond(self)
-                            Utility.Message.display('Logged In Successfully', 0)
-                            setting_panel.start_animate()
-                            back()
-                else:
-                    entry.delete(0, len(entry.get()))
-                    entry_pass.delete(0, len(entry_pass.get()))
-                    Utility.Message.display(out[1], 2)
+                        entry.delete(0, len(entry.get()))
+                        entry_pass.delete(0, len(entry_pass.get()))
+                        Utility.Message.display(out[1], 2)
+                except Exception as e:
+                    print(e)
+                    Utility.Message.display('Server Error please try again', 2)
             else:
                 Utility.Message.display('Please fill all the fields', 0)
 
@@ -636,8 +695,7 @@ class Main:
         # logo
         logo_img = Image.open(IMAGES['logo_png'])
         logo_img = ctk.CTkImage(logo_img, size=(216, 216))
-        label_logo = ctk.CTkLabel(master=frame, width=100, height=100, text='', image=logo_img,
-                                            anchor='center')
+        label_logo = ctk.CTkLabel(master=frame, width=100, height=100, text='', image=logo_img, anchor='center')
         label_logo.grid(column=0, row=0, padx=42, pady=(10, 0), sticky='n')
 
         label = ctk.CTkLabel(
@@ -688,14 +746,54 @@ class Main:
         def add_user():
             if entry.get() != '' and entry_pass.get() != '' and entry_pass_confirm.get() != '':
                 if entry_pass.get() == entry_pass_confirm.get():
-                    out = DatabaseHandler.DataBaseHandler.adduser(entry.get(), entry_pass.get())
-                    if out[0]:
-                        frame.destroy()
-                        Utility.Message.display(out[1], 0)
-                    else:
-                        entry.delete(0, len(entry.get()))
-                        entry_pass.delete(0, len(entry_pass.get()))
-                        Utility.Message.display(out[1], 1)
+                    try:
+                        if self.client_socket:
+                            self.client_socket.close()
+                        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        self.client_socket.connect((HOST, PORT))
+
+                        # send public key to be used only in lobby
+                        self.client_socket.send(public_key.save_pkcs1("PEM"))
+                        # public key of lobby of server for decryption
+                        lobby_public_partner = rsa.PublicKey.load_pkcs1(self.client_socket.recv(1024))
+                        # sending type of join to lobby
+                        self.client_socket.send(
+                            rsa.encrypt(
+                                'sign up'.encode("utf-8"),
+                                lobby_public_partner,
+                            )
+                        )
+                        time.sleep(0.05)
+                        # sending username
+                        self.client_socket.send(
+                            rsa.encrypt(
+                                entry.get().encode("utf-8"),
+                                lobby_public_partner,
+                            )
+                        )
+                        time.sleep(0.05)
+                        # sending password
+                        self.client_socket.send(
+                            rsa.encrypt(
+                                entry_pass.get().encode("utf-8"),
+                                lobby_public_partner,
+                            )
+                        )
+                        out = eval(rsa.decrypt(self.client_socket.recv(1024), private_key).decode("utf-8"))
+                        time.sleep(0.05)
+                        print(out)
+                        if out[0]:
+                            self.client_socket.close()
+                            frame.destroy()
+                            Utility.Message.display(out[1], 0)
+                        else:
+                            entry.delete(0, len(entry.get()))
+                            entry_pass.delete(0, len(entry_pass.get()))
+                            entry_pass_confirm.delete(0, len(entry_pass_confirm.get()))
+                            Utility.Message.display(out[1], 1)
+                    except Exception as e:
+                        print(e)
+                        Utility.Message.display("Couldn't connect to server, please try again", 2)
                 else:
                     Utility.Message.display('Password not matching with confirm password', 1)
             else:
@@ -870,5 +968,3 @@ if __name__ == '__main__':
 
     threading.Thread(target=get_btn_images).start()
     root.mainloop()
-
-

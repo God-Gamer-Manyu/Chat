@@ -1,19 +1,12 @@
 import threading
 
 import pymysql
+from pymysql.cursors import Cursor
 # todo: comment document and fix light warnings
 TABLE_NAME = 'User'
-CHAR_LEN = 50
 
-# db = pymysql.connect(
-#     host='localhost',
-#     user='Tester',  # 'GodGamer'
-#     passwd='Tester@2023',  # 'GodGamerData@2023'
-#     database='Chat'
-# )
-# cursor = db.cursor()
-db = None
-cursor = None
+db: pymysql.connect = None
+cursor: Cursor = None
 
 
 def get_db():
@@ -98,6 +91,6 @@ class DataBaseHandler:
 
 
 # data = DataBaseHandler()
-# # data.delete_all()
+# data.delete_all()
 #
 # data.display_table()
