@@ -10,7 +10,6 @@ from PIL import Image
 
 import Main
 import Utility
-import os
 
 # later: comment, document, fix light warnings, optimise code and use tkinter class wherever possible to organise code
 # later: For approach to optimise tkinter ui - https://www.youtube.com/watch?v=0y1kYxOp8hE&list=PLpMixYKO4EXflJFPhTvZOVAbs7lBdEBSa&index=11
@@ -172,12 +171,12 @@ class AiChat:
                 # display message
                 mes = ''
                 ct = 0
-                for i in self.message.split():
+                for j in self.message.split():
                     if ct >= MESSAGE_LINE_LENGTH:
-                        mes += '\n' + i
+                        mes += '\n' + j
                         ct = 0
                     else:
-                        mes += ' ' + i
+                        mes += ' ' + j
                     ct += 1
                 us_txt = ctk.CTkLabel(
                     master=self,
@@ -200,8 +199,7 @@ class AiChat:
                 # display current_time stamp
                 if current_time == '':
                     current_time = datetime.datetime.now()
-                us_time = ctk.CTkLabel(master=self, text=str(current_time)[:-10], width=30,
-                                                 height=10, font=FONT['t_stamp'])
+                us_time = ctk.CTkLabel(master=self, text=str(current_time)[:-10], width=30, height=10, font=FONT['t_stamp'])
                 us_time.grid(row=1, column=1, padx=5, pady=(0, 5), sticky='se')
 
         # AI message template
@@ -218,15 +216,12 @@ class AiChat:
             def draw_from_ques(self, question, history):
                 # bot logo
                 client_img = ctk.CTkImage(Image.open(IMAGES['bot']))
-                client_img_l = ctk.CTkLabel(master=self, image=client_img, width=30, height=30,
-                                                      text='')
+                client_img_l = ctk.CTkLabel(master=self, image=client_img, width=30, height=30, text='')
                 client_img_l.grid(row=0, column=0, padx=(5, 0), pady=7, sticky="nw")
 
                 # timestamp
                 cur_time = datetime.datetime.now()
-                client_time = ctk.CTkLabel(master=self, text=str(cur_time)[:-10],
-                                                     width=30,
-                                                     height=10, font=FONT['t_stamp'])
+                client_time = ctk.CTkLabel(master=self, text=str(cur_time)[:-10], width=30, height=10, font=FONT['t_stamp'])
                 client_time.grid(row=1, column=1, padx=5, pady=(0, 5), sticky='ne')
                 # bot message
                 client_txt = ctk.CTkLabel(
@@ -247,7 +242,7 @@ class AiChat:
                         # insert the current message and dots
                         dots = ''
 
-                        for ct in range(5):
+                        for count in range(5):
                             dots += '.'
                             client_txt.configure(text=dots)
                             app.update()
@@ -293,20 +288,18 @@ class AiChat:
                 client_img_l.grid(row=0, column=0, padx=(5, 0), pady=7, sticky="nw")
 
                 # timestamp
-                client_time = ctk.CTkLabel(master=self, text=str(cur_time)[:-10],
-                                                     width=30,
-                                                     height=10, font=FONT['t_stamp'])
+                client_time = ctk.CTkLabel(master=self, text=str(cur_time)[:-10], width=30, height=10, font=FONT['t_stamp'])
                 client_time.grid(row=1, column=1, padx=5, pady=5, sticky="ne")
 
                 # bot message
                 mes = ''
                 ct = 0
-                for i in res.split():
+                for j in res.split():
                     if ct >= MESSAGE_LINE_LENGTH:
-                        mes += '\n' + i
+                        mes += '\n' + j
                         ct = 0
                     else:
-                        mes += ' ' + i
+                        mes += ' ' + j
                     ct += 1
 
                 client_txt = ctk.CTkLabel(
@@ -329,20 +322,18 @@ class AiChat:
                 client_img_l.grid(row=0, column=0, padx=(5, 0), pady=7, sticky="nw")
 
                 # timestamp
-                client_time = ctk.CTkLabel(master=self, text=str(current_time)[:-10],
-                                                     width=30,
-                                                     height=10, font=FONT['t_stamp'])
+                client_time = ctk.CTkLabel(master=self, text=str(current_time)[:-10], width=30, height=10, font=FONT['t_stamp'])
                 client_time.grid(row=1, column=1, padx=5, pady=(0, 5), sticky='ne')
 
                 # bot message
                 mes = ''
                 ct = 0
-                for i in message.split():
+                for j in message.split():
                     if ct >= MESSAGE_LINE_LENGTH:
-                        mes += '\n' + i
+                        mes += '\n' + j
                         ct = 0
                     else:
-                        mes += ' ' + i
+                        mes += ' ' + j
                     ct += 1
                 client_txt = ctk.CTkLabel(
                     master=self,

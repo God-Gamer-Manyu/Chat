@@ -81,7 +81,7 @@ def clamp(value, min_value, max_value):
 class ChatWindow:
     # User message template
     class User(ctk.CTkFrame):
-        def __init__(self, message, message_area, profile_address, mainframe=None):
+        def __init__(self, message, message_area: ctk.CTkScrollableFrame, profile_address, mainframe=None):
             super().__init__(
                 message_area,
                 border_width=1,
@@ -583,6 +583,7 @@ class ChatWindow:
         self.clients_widgets = {}
 
         # Connect to the server
+        self.public_partner: rsa.PublicKey = None  # public_key only for server
         self.setup_client(client_socket)
 
         # BG
@@ -951,6 +952,20 @@ class ChatWindow:
                 try:
                     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     client_socket.connect((HOST, PORT))
+
+                    # send public key to be used only in lobby
+                    client_socket.send(public_key.save_pkcs1("PEM"))
+                    # public key of lobby of server for decryption
+                    lobby_public_partner = rsa.PublicKey.load_pkcs1(client_socket.recv(1024))
+                    # sending type of join
+                    client_socket.send(
+                        rsa.encrypt(
+                            'direct'.encode("utf-8"),
+                            lobby_public_partner,
+                        )
+                    )
+                    time.sleep(0.05)
+
                     self.setup_client(client_socket)
                     IS_REJOINING = False
                     joined = True

@@ -3,12 +3,81 @@ import threading
 import rsa
 import pickle
 import time
+
+import DatabaseHandler
+
 # todo: comment document and fix light warnings
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # for encryption
 public_key, private_key = rsa.newkeys(1024)
 PROFILE_PIC_PATH = 'Resources/profile_pic'  # '/' already used in string path
+
+
+class Lobby:
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+        self.chat_room = ChatRoom()
+        self.start_server()
+
+    def start_server(self):
+        server_socket.bind((self.host, self.port))
+        server_socket.listen(1)
+        print(f"Chat room started on {self.host}:{self.port}")
+        while True:
+            try:
+                # the client who joints info
+                client_socket, client_address = server_socket.accept()
+
+                # getting encryption keys for communication only in lobby
+                public_partner = rsa.PublicKey.load_pkcs1(
+                    client_socket.recv(1024)
+                )
+                client_socket.send(public_key.save_pkcs1("PEM"))
+
+                join_type = rsa.decrypt(client_socket.recv(1024), private_key).decode("utf-8")
+                time.sleep(0.05)
+                if join_type == 'direct':
+                    self.start_chatroom(client_socket)
+                elif join_type == 'login':
+                    username = rsa.decrypt(client_socket.recv(1024), private_key).decode("utf-8")
+                    time.sleep(0.05)
+                    password = rsa.decrypt(client_socket.recv(1024), private_key).decode("utf-8")
+
+                    out = DatabaseHandler.DataBaseHandler.check_user(username, password)
+                    # send the output of database to the client
+                    client_socket.send(
+                        rsa.encrypt(
+                            str(out).encode("utf-8"),
+                            public_partner,
+                        )
+                    )
+                    time.sleep(0.05)
+                    start = rsa.decrypt(client_socket.recv(1024), private_key).decode("utf-8")
+                    if out[0] and start == 'start':
+                        self.start_chatroom(client_socket)
+                elif join_type == 'sign up':
+                    username = rsa.decrypt(client_socket.recv(1024), private_key).decode("utf-8")
+                    time.sleep(0.05)
+                    password = rsa.decrypt(client_socket.recv(1024), private_key).decode("utf-8")
+
+                    out = DatabaseHandler.DataBaseHandler.adduser(username, password)
+                    # send the output of database to the client
+                    client_socket.send(
+                        rsa.encrypt(
+                            str(out).encode("utf-8"),
+                            public_partner,
+                        )
+                    )
+                    time.sleep(0.05)
+                    if out[0]:
+                        client_socket.close()
+            except Exception as e:
+                print(e)
+
+    def start_chatroom(self, client_socket):
+        self.chat_room.start_chatroom(client_socket)
 
 
 class ChatRoom:
@@ -175,85 +244,157 @@ class ChatRoom:
         time.sleep(0.05)
         print("image sent")
 
-    def start_server(self, host, port):
-        server_socket.bind((host, port))
-        server_socket.listen(1)
+    # def start_server(self, host, port):
+    #     server_socket.bind((host, port))
+    #     server_socket.listen(1)
+    #
+    #     print(f"Chat room started on {host}:{port}")
+    #
+    #     while True:
+    #         # the client who joints info
+    #         client_socket, client_address = server_socket.accept()
+    #         # get the name of client
+    #         client_name = client_socket.recv(1024).decode("utf-8")
+    #         # get profile pic
+    #         client_socket.send(f"{client_name} received client name".encode())
+    #         self.receive_file(client_socket, f"server_profile_pic/{client_name}.png")
+    #         profile_pic = f"server_profile_pic/{client_name}.png"
+    #
+    #         # getting encryption keys
+    #         self.public_partner[client_name] = rsa.PublicKey.load_pkcs1(
+    #             client_socket.recv(1024)
+    #         )
+    #         client_socket.send(public_key.save_pkcs1("PEM"))
+    #
+    #         # send previous conversation
+    #         client_socket.send(
+    #             rsa.encrypt(
+    #                 str(len(self.conversation)).encode("utf-8"),
+    #                 self.public_partner[client_name],
+    #             )
+    #         )
+    #         client_socket.recv(1024).decode("utf-8")
+    #         for i in self.conversation:
+    #             limit = 100
+    #             i = str(i)
+    #             cons_len = len(i)
+    #             cons_chunk = []
+    #             for m in range(0, cons_len, limit):
+    #                 s = ""
+    #                 if m + limit < cons_len:
+    #                     for j in range(m, m + limit):
+    #                         s += i[j]
+    #                 else:
+    #                     for j in range(m, cons_len):
+    #                         s += i[j]
+    #                 cons_chunk.append(s)
+    #             client_socket.send(
+    #                 rsa.encrypt(
+    #                     f"{len(cons_chunk)}".encode("utf-8"),
+    #                     self.public_partner[client_name],
+    #                 )
+    #             )
+    #             client_socket.recv(1024).decode()
+    #             for elem in cons_chunk:
+    #                 client_socket.send(
+    #                     rsa.encrypt(
+    #                         elem.encode("utf-8"), self.public_partner[client_name]
+    #                     )
+    #                 )
+    #                 client_socket.recv(1024).decode("utf-8")
+    #
+    #         res = client_socket.recv(1024).decode("utf-8")
+    #         if res != "All conversation received":
+    #             print(res)
+    #             time.sleep(0.05)
+    #             for i in range(eval(res)):
+    #                 img_path = client_socket.recv(1024).decode("utf-8")
+    #                 img_path = f"server_images/{img_path.split('/')[2]}"
+    #                 print(img_path)
+    #                 self.send_file(client_socket, img_path)
+    #                 time.sleep(0.05)
+    #             client_socket.recv(1024).decode("utf-8")  # for final confirmation
+    #
+    #         # add client to client info dictionary
+    #         self.add_client(client_name, client_socket, profile_pic)
+    #         print(f"{client_name} joined the chat room")
+    #
+    #         # Start a new thread to handle the client's connection
+    #         threading.Thread(
+    #             target=self.handle_client_connection, args=(client_socket, client_name)
+    #         ).start()
 
-        print(f"Chat room started on {host}:{port}")
+    def start_chatroom(self, client_socket):
+        # get the name of client
+        client_name = client_socket.recv(1024).decode("utf-8")
+        # get profile pic
+        client_socket.send(f"{client_name} received client name".encode())
+        self.receive_file(client_socket, f"server_profile_pic/{client_name}.png")
+        profile_pic = f"server_profile_pic/{client_name}.png"
 
-        while True:
-            # the client who joints info
-            client_socket, client_address = server_socket.accept()
-            # get the name of client
-            client_name = client_socket.recv(1024).decode("utf-8")
-            # get profile pic
-            client_socket.send(f"{client_name} received client name".encode())
-            self.receive_file(client_socket, f"server_profile_pic/{client_name}.png")
-            profile_pic = f"server_profile_pic/{client_name}.png"
+        # getting encryption keys
+        self.public_partner[client_name] = rsa.PublicKey.load_pkcs1(
+            client_socket.recv(1024)
+        )
+        client_socket.send(public_key.save_pkcs1("PEM"))
 
-            # getting encryption keys
-            self.public_partner[client_name] = rsa.PublicKey.load_pkcs1(
-                client_socket.recv(1024)
+        # send previous conversation
+        client_socket.send(
+            rsa.encrypt(
+                str(len(self.conversation)).encode("utf-8"),
+                self.public_partner[client_name],
             )
-            client_socket.send(public_key.save_pkcs1("PEM"))
-
-            # send previous conversation
+        )
+        client_socket.recv(1024).decode("utf-8")
+        for i in self.conversation:
+            limit = 100
+            i = str(i)
+            cons_len = len(i)
+            cons_chunk = []
+            for m in range(0, cons_len, limit):
+                s = ""
+                if m + limit < cons_len:
+                    for j in range(m, m + limit):
+                        s += i[j]
+                else:
+                    for j in range(m, cons_len):
+                        s += i[j]
+                cons_chunk.append(s)
             client_socket.send(
                 rsa.encrypt(
-                    str(len(self.conversation)).encode("utf-8"),
+                    f"{len(cons_chunk)}".encode("utf-8"),
                     self.public_partner[client_name],
                 )
             )
-            client_socket.recv(1024).decode("utf-8")
-            for i in self.conversation:
-                limit = 100
-                i = str(i)
-                cons_len = len(i)
-                cons_chunk = []
-                for m in range(0, cons_len, limit):
-                    s = ""
-                    if m + limit < cons_len:
-                        for j in range(m, m + limit):
-                            s += i[j]
-                    else:
-                        for j in range(m, cons_len):
-                            s += i[j]
-                    cons_chunk.append(s)
+            client_socket.recv(1024).decode()
+            for elem in cons_chunk:
                 client_socket.send(
                     rsa.encrypt(
-                        f"{len(cons_chunk)}".encode("utf-8"),
-                        self.public_partner[client_name],
+                        elem.encode("utf-8"), self.public_partner[client_name]
                     )
                 )
-                client_socket.recv(1024).decode()
-                for elem in cons_chunk:
-                    client_socket.send(
-                        rsa.encrypt(
-                            elem.encode("utf-8"), self.public_partner[client_name]
-                        )
-                    )
-                    client_socket.recv(1024).decode("utf-8")
+                client_socket.recv(1024).decode("utf-8")
 
-            res = client_socket.recv(1024).decode("utf-8")
-            if res != "All conversation received":
-                print(res)
+        res = client_socket.recv(1024).decode("utf-8")
+        if res != "All conversation received":
+            print(res)
+            time.sleep(0.05)
+            for i in range(eval(res)):
+                img_path = client_socket.recv(1024).decode("utf-8")
+                img_path = f"server_images/{img_path.split('/')[2]}"
+                print(img_path)
+                self.send_file(client_socket, img_path)
                 time.sleep(0.05)
-                for i in range(eval(res)):
-                    img_path = client_socket.recv(1024).decode("utf-8")
-                    img_path = f"server_images/{img_path.split('/')[2]}"
-                    print(img_path)
-                    self.send_file(client_socket, img_path)
-                    time.sleep(0.05)
-                client_socket.recv(1024).decode("utf-8")  # for final confirmation
+            client_socket.recv(1024).decode("utf-8")  # for final confirmation
 
-            # add client to client info dictionary
-            self.add_client(client_name, client_socket, profile_pic)
-            print(f"{client_name} joined the chat room")
+        # add client to client info dictionary
+        self.add_client(client_name, client_socket, profile_pic)
+        print(f"{client_name} joined the chat room")
 
-            # Start a new thread to handle the client's connection
-            threading.Thread(
-                target=self.handle_client_connection, args=(client_socket, client_name)
-            ).start()
+        # Start a new thread to handle the client's connection
+        threading.Thread(
+            target=self.handle_client_connection, args=(client_socket, client_name)
+        ).start()
 
     def handle_client_connection(self, client_socket, client_name):
         while True:
@@ -349,7 +490,7 @@ class ChatRoom:
                             }
                         )
                         self.send_mes_pic(client_name, message + ":" + timestamp)
-                #print('line - 350 - ', self.conversation)
+                # print('line - 350 - ', self.conversation)
             except Exception as e:  # removing client and ending the process
                 self.clients[client_name].close()
                 self.remove_client(client_name)
@@ -358,5 +499,6 @@ class ChatRoom:
 
 
 if __name__ == "__main__":
-    chat_room = ChatRoom()
-    chat_room.start_server("localhost", 8888)
+    # chat_room = ChatRoom()
+    # chat_room.start_server("localhost", 8888)
+    Lobby('localhost', 8888)
