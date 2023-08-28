@@ -29,6 +29,8 @@ import ctypes
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 
+##################################
+# testing purposes don't put in documentation
 def print(*args, **kwargs):
     # Converting anything other than string to string
     values = []
@@ -132,9 +134,8 @@ class Main:
 
         #####################################################################
         '''For Debug purpose'''
-        con_ctk_toggle = ctk.Variable(value=Utility.console_toggle)
         color = ('#ffffff', '#000000')
-        console_checkbox = ctk.CTkCheckBox(bg_l1, 25, 25, text='', bg_color=color, command=Utility.LogCollect.raise_console, border_color=color, variable=con_ctk_toggle)
+        console_checkbox = Utility.LogCollect(bg_l1, 25, 25, color)
         console_checkbox.place(relx=1, rely=1, anchor='se')
         #################################################################################
 
@@ -920,7 +921,7 @@ class Main:
         with open(os.path.join(STORE_PATH, MEMORY['u_name']), 'wb') as encrypted_file:
             encrypted_file.write(encrypted)
 
-        Utility.LogCollect.quit()  # Closing The log console, if not closed
+        Utility.LogCollect.close()  # Closing The log console, if not closed
 
 
 if __name__ == '__main__':

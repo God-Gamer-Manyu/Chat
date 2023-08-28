@@ -1,3 +1,9 @@
+#########################
+from __future__ import print_function
+
+import builtins as __builtin__
+#######################
+
 import os
 import threading
 
@@ -159,6 +165,23 @@ console_toggle = False
 load_dotenv()
 
 
+##################################
+# testing purposes don't put in documentation
+def print(*args, **kwargs):
+    # Converting anything other than string to string
+    values = []
+    for i in args:
+        try:
+            s = str(i)
+            values.append(s)
+        except Exception:
+            values.append(i)
+    # Appending the log to list
+    LogCollect.add((' '.join(values), str(**kwargs)))
+    return __builtin__.print(*args, **kwargs)
+#######################
+
+
 # To store files in computer where people can't access directly
 class DataStorePath:
     @staticmethod
@@ -197,12 +220,30 @@ class SoundManager:
         pass
 
 
-class LogCollect:
+class LogCollect(ctk.CTkCheckBox):
+    def __init__(self, master, width, height, color, text='', **kwargs):
+        super().__init__(
+            master=master,
+            width=width,
+            height=height,
+            text=text,
+            command=lambda: LogCollect.raise_console(),
+            bg_color=color,
+            border_color=color,
+            **kwargs
+        )
+        self.set_var()
+
+    def set_var(self):
+        LogCollect.show = ctk.BooleanVar(value=console_toggle)
+        self.configure(variable=LogCollect.show)
+
     ctk.set_appearance_mode('dark')
     ctk.set_default_color_theme('dark-blue')
 
     log_disp = None
     app = None
+    show: ctk.BooleanVar = None
 
     @staticmethod
     def run():
@@ -211,6 +252,7 @@ class LogCollect:
         LogCollect.app = ctk.CTk()
         LogCollect.app.geometry('1000x600')  # Set screen size
         LogCollect.app.title("Intelli chat")  # Set title
+        LogCollect.app.protocol('WM_DELETE_WINDOW', LogCollect.raise_console)
         # set the icon for the window
         LogCollect.app.iconbitmap(images['logo ICO'])
         LogCollect.app.wm_iconbitmap(images['logo ICO'])
@@ -232,7 +274,7 @@ class LogCollect:
     def add(data):
         collector.append(data)
         try:
-            if LogCollect.log_disp:
+            if LogCollect.app:
                 for i in collector:
                     i = map(str, i)
                     i = ' '.join(i)
@@ -243,9 +285,11 @@ class LogCollect:
             print(e)
 
     @staticmethod
-    def quit():
+    def close():
         try:
-            LogCollect.app.destroy()
+            if LogCollect.app:
+                LogCollect.app.destroy()
+                LogCollect.app = None
         except Exception as e:
             print(e)
 
@@ -256,10 +300,14 @@ class LogCollect:
         """Brings up the Console Window."""
         if console_toggle:
             # Show console
+            if LogCollect.show:
+                LogCollect.show.set(True)
             LogCollect.run()
         else:
             # Hide console
-            LogCollect.quit()
+            if LogCollect.show:
+                LogCollect.show.set(False)
+            LogCollect.close()
 
 
 class Message:
