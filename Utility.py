@@ -159,6 +159,8 @@ FRIEND_IMAGE_SEQUENCE = None  # image sequence
 SETTING_IMAGE_SEQUENCE = None  # image sequence
 
 U_NAME_CHAR_LEN = 50
+MESSAGE_LINE_LENGTH_CHAT = 16  # word limit
+MESSAGE_LINE_LENGTH_AI = 16  # word limit
 
 collector = []
 console_toggle = False

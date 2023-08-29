@@ -3,8 +3,6 @@ from __future__ import print_function
 import builtins as __builtin__
 #######################
 
-# later: comment, document, fix light warnings, optimise code and use tkinter class wherever possible to organise code
-# later: For approach to optimise tkinter ui - https://www.youtube.com/watch?v=0y1kYxOp8hE&list=PLpMixYKO4EXflJFPhTvZOVAbs7lBdEBSa&index=11
 # packages
 import socket
 import threading
@@ -39,6 +37,7 @@ def print(*args, **kwargs):
 #######################
 
 
+# the absolute path where the program stores its files
 STORE_PATH = Main.STORE_PATH
 # Set up a TCP socket
 CLIENT_SOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,12 +51,12 @@ MEMORY = Utility.MEMORY
 IMAGES = Utility.IMAGES
 FONT = Utility.FONT
 SOUND_EFFECTS = Utility.SOUND_EFFECTS
-PIX_LINE = 15
-BORDER_PIX = 44
-CHAR_SIZE = FONT["Comic"][1]
-DPI = Main.DPI
-MESSAGE_LINE_LENGTH = 16  # word limit
-DPI_ADJ = 2.8  # 2.9 is the adjustment value for tkinter
+#PIX_LINE = 15
+#BORDER_PIX = 44
+#CHAR_SIZE = FONT["Comic"][1]
+#DPI = Main.DPI
+MESSAGE_LINE_LENGTH = Utility.MESSAGE_LINE_LENGTH_CHAT  # word limit
+#DPI_ADJ = 2.8  # 2.9 is the adjustment value for tkinter
 IMAGES_FOLD_PATH = 'Resources/images/'
 REC_IMG_FOLD_PATH = '/Resources/rec_images/'
 BG_SIZE = Utility.BG_IMG_SIZE
@@ -94,9 +93,14 @@ class ChatWindow:
             self.mainframe = mainframe
 
         def draw(self, current_time=""):
-            Utility.SoundManager.play(SOUND_EFFECTS["send"])
+            """
+            displays the user message
+            :param current_time: To display a specific time
+            """
+            Utility.SoundManager.play(SOUND_EFFECTS["send"])  # play sound
 
             # display message
+            # Adjust the message to fit the text placeholder
             mes = ''
             ct = 0
             for i in self.message.split():
@@ -107,6 +111,7 @@ class ChatWindow:
                     mes += ' ' + i
                 ct += 1
 
+            # TExt placeholder
             us_txt = ctk.CTkLabel(
                 master=self,
                 font=FONT["Comic"],
@@ -143,11 +148,16 @@ class ChatWindow:
             us_time.grid(row=1, column=1, padx=5, pady=(0, 5), sticky='se')
 
         def draw_pic(self, file_path, current_time=""):
-            Utility.SoundManager.play(SOUND_EFFECTS["send"])
+            """
+            Displays the picture which the user had sent
+            :param file_path: relative path to store the picture
+            :param current_time: To set a timestamp
+            """
+            Utility.SoundManager.play(SOUND_EFFECTS["send"])  # play the sound
             file_path = STORE_PATH + '/' + file_path
 
-            # show the full pic in image viewer
             def show():
+                """show the full pic in image viewer"""
                 image_holder = ctk.CTkFrame(
                     self.mainframe,
                     width=SIZE_X - 315,
@@ -177,6 +187,7 @@ class ChatWindow:
                 )
                 close_btn.place(relx=0.95, rely=0.02)
 
+            # image in message window
             image = ctk.CTkImage(Image.open(file_path), size=(100, 100))
             # display image as message
             us_pic = ctk.CTkButton(
@@ -228,6 +239,7 @@ class ChatWindow:
 
         @staticmethod
         def un_len_find(username):
+            """Limit username length"""
             mes_len = len(username)
             mes_len = (mes_len * 9) + 10
             mes_len = clamp(mes_len, 5, 100)
@@ -235,7 +247,16 @@ class ChatWindow:
 
         # display other clients message
         def draw(self, message, username, profile_address=IMAGES['user'], is_private=False, current_time=""):
-            Utility.SoundManager.play(SOUND_EFFECTS["receive"])
+            """
+            Display other clients messages
+            :param message:  to be displayed
+            :param username: to be displayed
+            :param profile_address: to be displayed
+            :param is_private: whether the message was sent privately
+            :param current_time: to set a timestamp
+            """
+            Utility.SoundManager.play(SOUND_EFFECTS["receive"])  # play sound
+            # custom username if length exceeded
             if len(username) > 9:
                 username = username[:9] + ".."
 
@@ -287,6 +308,7 @@ class ChatWindow:
                 client_time.grid(row=0, column=2, pady=(5, 0), padx=5, sticky='ne')
 
             # other user message
+            # Adjust message to fit the placeholder
             mes = ''
             ct = 0
             for i in message.split():
@@ -297,6 +319,7 @@ class ChatWindow:
                     mes += ' ' + i
                 ct += 1
 
+            # Message placeholder
             us_txt = ctk.CTkLabel(
                 master=self,
                 font=FONT["Comic"],
@@ -310,6 +333,15 @@ class ChatWindow:
             return
 
         def draw_pic(self, username, file_path, profile_address=IMAGES['user'], is_private=False, current_time=""):
+            """
+            display other user's pictures
+            :param username: to be displayed
+            :param file_path: relative path to be stored to
+            :param profile_address:
+            :param is_private:
+            :param current_time:
+            :return:
+            """
             Utility.SoundManager.play(SOUND_EFFECTS["receive"])
             file_path = STORE_PATH + '/' + file_path
 
@@ -355,6 +387,7 @@ class ChatWindow:
                 )
                 close_btn.place(relx=0.94, rely=0.02)
 
+            # image displayed in message view
             image = ctk.CTkImage(Image.open(file_path), size=(100, 100))
             # display image as message
             client_pic = ctk.CTkButton(
@@ -417,11 +450,15 @@ class ChatWindow:
             self.pack()
             self.clients_widgets = clients_widgets
 
-        # displays which and all user has joined the chatroom
         def draw(self, username, profile_address):
-            Utility.SoundManager.play(SOUND_EFFECTS["join"])
+            """
+            displays which and all user has joined the chatroom
+            :param username: to be displayed
+            :param profile_address: to be displayed
+            """
+            Utility.SoundManager.play(SOUND_EFFECTS["join"])  # sound effects
 
-            self.clients_widgets[username] = self.winfo_name()
+            self.clients_widgets[username] = self.winfo_name()  # append the widget to the list for further manipulation
 
             # other user logo
             profile_address = os.path.join(STORE_PATH, profile_address)
@@ -435,6 +472,8 @@ class ChatWindow:
                 image=client_img,
             )
             client_img_l.grid(row=0, column=0, pady=5, padx=(5, 0), sticky='nw')
+
+            # other username
             client_name_l = ctk.CTkTextbox(
                 master=self, width=120, height=40, font=FONT["Oth_uname"], fg_color=COLOR['other-cl-disp']['t-box-fg']
             )
@@ -444,7 +483,13 @@ class ChatWindow:
 
     @staticmethod
     def send_file(client_socket, file_dir):
+        """
+        Sends file to the server
+        :param client_socket:
+        :param file_dir: absolute path to the picture
+        """
         try:
+            # disable texting
             global CAN_TEXT
             CAN_TEXT = False
             # load the picture from a file
@@ -459,13 +504,19 @@ class ChatWindow:
             client_socket.send(b"<END>")
             time.sleep(0.05)
             print("image sent")
-            CAN_TEXT = True
-        except Exception as e:
+            CAN_TEXT = True  # enable texting
+        except Exception as e:  # display error message
             print('Error send pic:-', e)
             Utility.Message.display('Error occurred while sending picture, please try again', 2)
 
     @staticmethod
     def receive_file(client_socket, save_file_dir):
+        """
+        Receive file from server
+        :param client_socket:
+        :param save_file_dir: absolute path to save the picture
+        :return:
+        """
         try:
             # receive the picture data
             data = b""
@@ -482,11 +533,15 @@ class ChatWindow:
                 f.write(picture)
             time.sleep(0.05)
             print("Picture received and saved to file")
-        except Exception as e:
+        except Exception as e:  # display error message
             print('error receiving pic:-', e)
             Utility.Message.display('Error occurred while receiving picture', 2)
 
     def setup_client(self, client_socket):
+        """
+        setups the client
+        :param client_socket:
+        """
         # Connect to the server
         global CLIENT_SOCKET
         CLIENT_SOCKET = client_socket
@@ -508,7 +563,7 @@ class ChatWindow:
         )
         CLIENT_SOCKET.send(f"{self.name}received cons_length".encode())
 
-        try:
+        try:  # get ongoing conversation from server and store it in a list
             conversation_ser = []
             for i in range(cons_length):
                 cons_len = eval(
@@ -524,15 +579,15 @@ class ChatWindow:
                 rec = eval(rec)
                 print("previous cons", rec)
                 conversation_ser.append(rec)
-        except Exception as e:
+        except Exception as e:  # display error message
             conversation_ser = []
             print('error while receiving prev cons from server:-', e)
 
         # later: create functionality which will load the latest image of a client (if required, may be done automatically)
         # appending missed conversation which were not saved
-        img_not_found = []
+        img_not_found = []  # list to store name sof images that are not with the client
         print('to get missing arguments', self.conversation)
-        for i in conversation_ser:
+        for i in conversation_ser:  # checks for any missing messages
             if self.conversation:
                 for j in self.conversation:
                     if i['uname'] == j['uname'] and i['message'] == j['message'] and i['time'] == j['time']:
@@ -540,15 +595,15 @@ class ChatWindow:
                 else:
                     image = i['image']
                     if image and not os.path.isfile(image) and image not in img_not_found:
-                        img_not_found.append(image)
+                        img_not_found.append(image)  # appends the missing image name to the list
                     self.conversation.append(i)
             else:
                 image = i['image']
                 if image and not os.path.isfile(image):
-                    img_not_found.append(image)
+                    img_not_found.append(image)  # appends the missing image name to the list
                 self.conversation.append(i)
 
-        if len(img_not_found) > 0:
+        if len(img_not_found) > 0:  # get the image from the server
             print(img_not_found)
             CLIENT_SOCKET.send(str(len(img_not_found)).encode())
             time.sleep(0.05)
@@ -614,6 +669,8 @@ class ChatWindow:
             text_color=COLOR['font']['2'],
         )
         rule_disp.grid(row=0, column=1, padx=(250, 100), pady=5)
+
+        # username
         uname_disp = ctk.CTkLabel(
             master=head_frame,
             width=30,
@@ -771,6 +828,10 @@ class ChatWindow:
         self.receive_thread.start()
 
     def receive_messages(self, public_partner):
+        """
+        Handles incoming messages from the server
+        :param public_partner: of the server
+        """
         global IS_RECEIVING_MESSAGES
         try:
             while not self.abort:
@@ -932,7 +993,7 @@ class ChatWindow:
             print("Connection error", e)
             IS_RECEIVING_MESSAGES = False
             return
-        except Exception as e:
+        except Exception as e:  # rejoining in case of an error
             print("error received message", type(e), e)
             global IS_REJOINING
             IS_RECEIVING_MESSAGES = False
@@ -943,13 +1004,15 @@ class ChatWindow:
 
     # tries to rejoin the server on connection lost
     def rejoin_server(self):
+        """Rejoins the server on connection lost"""
         global IS_REJOINING, IS_RECEIVING_MESSAGES
-        if not self.abort:
+        if not self.abort:  # not ordered to close the program
             joined = False
-            while not joined:
+            while not joined:  # has not already joined the server
                 if self.abort:
                     break
                 try:
+                    # new connections
                     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     client_socket.connect((HOST, PORT))
 
@@ -966,17 +1029,19 @@ class ChatWindow:
                     )
                     time.sleep(0.05)
 
+                    # set up the client window
                     self.setup_client(client_socket)
                     IS_REJOINING = False
                     joined = True
-                    if not IS_RECEIVING_MESSAGES:
+                    if not IS_RECEIVING_MESSAGES:  # start receiving messages
                         threading.Thread(target=self.receive_messages, args=(self.public_partner,)).start()
                         IS_RECEIVING_MESSAGES = True
                     break
-                except Exception as e:
+                except Exception as e:  # print exception
                     print(e)
 
     def send_message(self):
+        """Handles sending messages to the server"""
         if CAN_TEXT:
             # Get the message from the input box
             message = self.input_box.get()
@@ -1026,15 +1091,16 @@ class ChatWindow:
                             CLIENT_SOCKET.send(rsa.encrypt(i.encode("utf-8"), self.public_partner))
                             time.sleep(0.05)
                         self.input_box.delete(0, ctk.END)
-                except Exception as e:
+                except Exception as e:  # display error message
                     global IS_REJOINING
-                    if not IS_REJOINING:
+                    if not IS_REJOINING:  # try to rejoin with the server
                         threading.Thread(target=self.rejoin_server).start()
                         IS_REJOINING = True
                     print('Error sending message', e)
                     Utility.Message.display('Error while sending message, please try again', 2)
 
     def send_pic(self):
+        """send pictures to the server"""
         try:
             file_path = filedialog.askopenfilename()
             if file_path:
@@ -1069,12 +1135,12 @@ class ChatWindow:
                 # display the message to the user
                 user = self.User('', self.message_area, self.profile_address, self.frame)
                 user.draw_pic(image_path)
-        except Exception as e:
+        except Exception as e:  # display the error message
             print('Error send picture', e)
             Utility.Message.display('Error while sending picture, please try again', 2)
 
     def close_window(self):
-        # Disconnect from the server and exit the application
+        """Disconnect from the server and exit the application"""
         self.abort = True
         self.save_files()
         Utility.SoundManager.quit()
@@ -1082,6 +1148,7 @@ class ChatWindow:
         self.master.destroy()
 
     def save_files(self):
+        """Save the conversations"""
         # opening the key
         with open(MEMORY['f_key'], "rb") as file_key:
             key = file_key.read()
