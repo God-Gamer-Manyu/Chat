@@ -92,5 +92,5 @@ class DataBaseHandler:
 
 # data = DataBaseHandler()
 # data.delete_all()
-#
+
 # data.display_table()
