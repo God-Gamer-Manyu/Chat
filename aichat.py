@@ -21,7 +21,7 @@ IMAGES = Utility.IMAGES
 # Sound effects
 SOUND_EFFECTS = Utility.SOUND_EFFECTS
 # adjustment variables
-MESSAGE_LINE_LENGTH = 16  # word limit
+MESSAGE_LINE_LENGTH = Utility.MESSAGE_LINE_LENGTH_AI  # word limit
 PIX_LINE = 15
 BORDER_PIX = 44
 BG_SIZE = Utility.BG_IMG_SIZE
