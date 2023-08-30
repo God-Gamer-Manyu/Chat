@@ -896,11 +896,13 @@ class ChatWindow:
                         if key not in message.keys():
                             remove_client.append(key)
 
-                    # removing the widget of clients who left
+                    # offline the widget of clients who left
                     for key in remove_client:
+                        Utility.SoundManager.play(Utility.SOUND_EFFECTS['disconnect'])  # play the sound
                         print("disabled client", key)
                         widget: ctk.CTkFrame
                         for widget in self.user_area.winfo_children():
+                            # get the widget and change the color to offline state
                             if widget.winfo_name() == self.clients_widgets[key]:
                                 widget.configure(fg_color=Utility.COLOR['chat']['darkest'], border_color=Utility.COLOR['chat']['inside 2'])
                                 for i in widget.winfo_children():

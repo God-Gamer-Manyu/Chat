@@ -27,6 +27,7 @@ SOUND_EFFECTS = {
     "send": "Resources/Sound effects/send_message.wav",
     "receive": "Resources/Sound effects/receive message.wav",
     'error': 'Resources/Sound effects/error.wav',
+    'disconnect': 'Resources/Sound effects/disconnect.wav'
 }
 # stored files
 MEMORY = {
