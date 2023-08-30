@@ -1,13 +1,12 @@
 #########################
+# testing purposes don't put in documentation
 from __future__ import print_function
 import builtins as __builtin__
 #######################
-
 # packages
 import socket
 import threading
 from tkinter import filedialog
-
 import customtkinter as ctk
 from PIL import Image
 import datetime
@@ -16,12 +15,12 @@ from cryptography.fernet import Fernet
 import pickle
 import time
 import os
-
 import Main
 import Utility
 
 
 ####################
+# testing purposes don't put in documentation
 def print(*args, **kwargs):
     # Converting anything other than string to string
     values = []
@@ -51,12 +50,7 @@ MEMORY = Utility.MEMORY
 IMAGES = Utility.IMAGES
 FONT = Utility.FONT
 SOUND_EFFECTS = Utility.SOUND_EFFECTS
-#PIX_LINE = 15
-#BORDER_PIX = 44
-#CHAR_SIZE = FONT["Comic"][1]
-#DPI = Main.DPI
 MESSAGE_LINE_LENGTH = Utility.MESSAGE_LINE_LENGTH_CHAT  # word limit
-#DPI_ADJ = 2.8  # 2.9 is the adjustment value for tkinter
 IMAGES_FOLD_PATH = 'Resources/images/'
 REC_IMG_FOLD_PATH = '/Resources/rec_images/'
 BG_SIZE = Utility.BG_IMG_SIZE

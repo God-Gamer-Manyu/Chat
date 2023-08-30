@@ -3,16 +3,12 @@ import concurrent.futures
 import datetime
 import time
 import tkinter
-
 import customtkinter as ctk
 import openai
 from PIL import Image
-
 import Main
 import Utility
 
-# later: comment, document, fix light warnings, optimise code and use tkinter class wherever possible to organise code
-# later: For approach to optimise tkinter ui - https://www.youtube.com/watch?v=0y1kYxOp8hE&list=PLpMixYKO4EXflJFPhTvZOVAbs7lBdEBSa&index=11
 # Global variables
 # Fonts
 FONT = Utility.FONT
@@ -22,14 +18,17 @@ IMAGES = Utility.IMAGES
 SOUND_EFFECTS = Utility.SOUND_EFFECTS
 # adjustment variables
 MESSAGE_LINE_LENGTH = Utility.MESSAGE_LINE_LENGTH_AI  # word limit
-PIX_LINE = 15
-BORDER_PIX = 44
 BG_SIZE = Utility.BG_IMG_SIZE
 COLOR = Utility.COLOR
 
 
 # method which gets the output from open AI
 def ask_openai(prompt):
+    """
+    Get Response from AI Bot
+    :param prompt: Message to be asked to the bot
+    :return: The response of the bot
+    """
     try:
         # imp: uncomment when building exe for actual board practicals
         # openai.api_key = os.getenv('AI_API_KEY')
@@ -80,14 +79,25 @@ class AiChat:
         return self.history  # returning the whole history
 
     def mainloop(self, app, size_x, size_y, profile_address, username, conversation, password):
+        """
+        displays the AI window
+        :param app: root ctk
+        :param size_x: x size of window
+        :param size_y: y size of window
+        :param profile_address: of the user
+        :param username: of the user
+        :param conversation: any previously loaded conversation
+        :param password: of the user
+        """
         app.title(f"Intelli chat - {Utility.AI_CHAT_NAME}")   # Set title
 
         def close_window():
+            """Closes the window"""
             Main.Main.save_login_cred(username, password, profile_address)
             Utility.SoundManager.quit()
             app.destroy()
 
-        app.protocol("WM_DELETE_WINDOW", close_window)
+        app.protocol("WM_DELETE_WINDOW", close_window)  # binding custom close function
 
         # BG
         bg_img = ctk.CTkImage(*map(Image.open, IMAGES['bg']), size=BG_SIZE)
@@ -167,8 +177,10 @@ class AiChat:
                 self.message = message
 
             def draw(self, current_time=''):
-                Utility.SoundManager.play(SOUND_EFFECTS['send'])
+                """display the message of the user"""
+                Utility.SoundManager.play(SOUND_EFFECTS['send'])  # play sound
                 # display message
+                # Adjust the message to fit in placeholder
                 mes = ''
                 ct = 0
                 for j in self.message.split():
@@ -178,6 +190,7 @@ class AiChat:
                     else:
                         mes += ' ' + j
                     ct += 1
+                # Message placeholder
                 us_txt = ctk.CTkLabel(
                     master=self,
                     font=FONT['Comic'],
@@ -214,6 +227,11 @@ class AiChat:
                 self.pack(anchor='w')
 
             def draw_from_ques(self, question, history):
+                """
+                Display the answer to the given question
+                :param question: to be asked to the AI
+                :param history: of previous conversations
+                """
                 # bot logo
                 client_img = ctk.CTkImage(Image.open(IMAGES['bot']))
                 client_img_l = ctk.CTkLabel(master=self, image=client_img, width=30, height=30, text='')
@@ -238,6 +256,7 @@ class AiChat:
                 task_finished = False
 
                 def update_text():
+                    """Display ... until answer is generated"""
                     if not task_finished:
                         # insert the current message and dots
                         dots = ''
@@ -302,6 +321,7 @@ class AiChat:
                         mes += ' ' + j
                     ct += 1
 
+                # Message placeholder
                 client_txt = ctk.CTkLabel(
                     master=self,
                     font=FONT['Comic'],
@@ -314,7 +334,12 @@ class AiChat:
                 client_txt.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
 
             def draw(self, message, current_time):
-                Utility.SoundManager.play(SOUND_EFFECTS['receive'])
+                """
+                Display the message loaded from Previous conversation
+                :param message: to be displayed
+                :param current_time: to be displayed
+                """
+                Utility.SoundManager.play(SOUND_EFFECTS['receive'])  # Play the sound
 
                 # bot logo
                 client_img = ctk.CTkImage(Image.open(IMAGES['bot']))
@@ -326,6 +351,7 @@ class AiChat:
                 client_time.grid(row=1, column=1, padx=5, pady=(0, 5), sticky='ne')
 
                 # bot message
+                # refining the message
                 mes = ''
                 ct = 0
                 for j in message.split():
@@ -335,6 +361,7 @@ class AiChat:
                     else:
                         mes += ' ' + j
                     ct += 1
+                # Message placeholder
                 client_txt = ctk.CTkLabel(
                     master=self,
                     font=FONT['Comic'],

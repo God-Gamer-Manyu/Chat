@@ -1,15 +1,18 @@
+# Importing modules
 import threading
-
 import pymysql
 from pymysql.cursors import Cursor
-# todo: comment document and fix light warnings
+
+# table
 TABLE_NAME = 'User'
 
+# database and cursor
 db: pymysql.connect = None
 cursor: Cursor = None
 
 
 def get_db():
+    """Connects to the database"""
     global db, cursor
     try:
         db = pymysql.connect(
@@ -36,26 +39,38 @@ class DataBaseHandler:
 
     @staticmethod
     def adduser(username, password):
+        """
+        Adds the user to the database
+        :param username: to be added to the database
+        :param password: to be added to the database
+        :return: (Boolean, Message: str) false if already present
+        """
         if cursor is None:
             get_db()
         out = DataBaseHandler.check_user(username, password)
-        if not out[0] and out[1] != 'Password is incorrect':
+        if not out[0] and out[1] != 'Password is incorrect':  # check if the user is already added
             cursor.execute(f'INSERT INTO {TABLE_NAME} (name, pass) VALUES (%s,%s)', (username, password))
             print(f'{username} added')
             db.commit()
             return True, 'Signed up Successfully'
-        else:
+        else:  # display username is already present
             print(f'{username} already in use')
             return False, 'Username already in use'
 
     @staticmethod
     def check_user(username, password):
+        """
+        Checks if the user is present and the password is correct
+        :param username: to be checked
+        :param password: to be checked
+        :return: (Boolean, Message: str) false if not matching
+        """
         if cursor is None:
             get_db()
         cursor.execute(f'SELECT * FROM {TABLE_NAME}')
         for x in cursor:
-            if x[0] == username:
-                if x[1] == password:
+            if x[0] == username:  # checking username
+                if x[1] == password:  # checking password
                     return True, 'All credentials correct'
                 else:
                     return False, 'Password is incorrect'
@@ -63,6 +78,7 @@ class DataBaseHandler:
 
     @staticmethod
     def delete_user(username):
+        """Deleting user from database"""
         if cursor is None:
             get_db()
         cursor.execute(f'DELETE FROM {TABLE_NAME} where name = (%s)', (username,))
@@ -71,6 +87,7 @@ class DataBaseHandler:
 
     @staticmethod
     def display_table():
+        """Display the table"""
         if cursor is None:
             get_db()
         cursor.execute(f'SELECT * FROM {TABLE_NAME}')
@@ -79,6 +96,7 @@ class DataBaseHandler:
 
     @staticmethod
     def delete_all():
+        """Clear the table"""
         if cursor is None:
             get_db()
         cursor.execute(f'SELECT name FROM {TABLE_NAME}')
