@@ -95,7 +95,7 @@ class ChatRoom:
         self.public_partner = {}
         self.conversation = []
 
-    def add_client(self, client_name, client_socket, profile_pic):
+    def add_client(self, client_name: str, client_socket: socket.socket, profile_pic: str):
         """
         Add a client to the chat room
         :param client_name: name of the client
@@ -114,7 +114,7 @@ class ChatRoom:
             cl_socket.send(rsa.encrypt(f"@clients#".encode("utf-8"), public_partner))
             # rest is done by handle client function
 
-    def remove_client(self, client_name):
+    def remove_client(self, client_name: str):
         """Remove client from the chat room"""
         if client_name in self.clients:
             del self.clients[client_name]
@@ -130,7 +130,7 @@ class ChatRoom:
                 )
 
     def send_mes_pic(
-        self, sender_name, message, recipient_name="", is_pic=False
+        self, sender_name: str, message: str, recipient_name="", is_pic=False
     ):
         """
         Send a picture or a message to the client
@@ -236,7 +236,7 @@ class ChatRoom:
                     self.send_file(cl_socket, f'server_images/{message}.png')
 
     @staticmethod
-    def receive_file(client_socket, save_file_dir):
+    def receive_file(client_socket: socket.socket, save_file_dir: str):
         """
         # receive the picture data
         :param client_socket: network connection info from whom the file is being received
@@ -258,7 +258,7 @@ class ChatRoom:
         print("Picture received and saved to file")
 
     @staticmethod
-    def send_file(client_socket, file_dir):
+    def send_file(client_socket: socket.socket, file_dir: str):
         """
         send a file to a client
         :param client_socket: Network info of whom the file has to be sent
@@ -277,7 +277,7 @@ class ChatRoom:
         time.sleep(0.05)
         print("image sent")
 
-    def start_chatroom(self, client_socket):
+    def start_chatroom(self, client_socket: socket.socket):
         """
         let the client enter the chat room
         :param client_socket: Network info of the client who is entering
@@ -356,7 +356,7 @@ class ChatRoom:
             target=self.handle_client_connection, args=(client_socket, client_name)
         ).start()
 
-    def handle_client_connection(self, client_socket, client_name):
+    def handle_client_connection(self, client_socket: socket.socket, client_name: str):
         """
         handles a client of the chatroom
         :param client_socket: Network info of the client

@@ -6,6 +6,8 @@ import builtins as __builtin__
 # Importing modules
 import os
 import threading
+from typing import Callable
+
 import pygame
 import customtkinter as ctk
 from tkinter import messagebox
@@ -178,7 +180,7 @@ class DataStorePath:
 
 class SoundManager:
     @staticmethod
-    def play(address):
+    def play(address: str):
         """
         Play a sound
         :param address: Relative path to the sound
@@ -286,7 +288,7 @@ class LogCollect(ctk.CTkCheckBox):
 
 class Message:
     @staticmethod
-    def display(message, message_type: int):
+    def display(message: str, message_type: int):
         """
         :param message_type: 0- informative message,1- warning, 2- error
         :param message: use it at the last as it leds to a loop which can hinder other statements
@@ -303,7 +305,7 @@ class Message:
 
 class Images:
     @staticmethod
-    def open_as_circle(filename):
+    def open_as_circle(filename: str):
         """
         Open Image in circular format
         :param filename: relative path to the image
@@ -331,9 +333,9 @@ class Images:
 class AnimatedButton(ctk.CTkButton):
     def __init__(
             self,
-            master,
-            light_path,
-            dark_path,
+            master: ctk.CTkFrame,
+            light_path: str,
+            dark_path: str,
             pic_size=(30, 30),
             anim_speed=20,
             source=None,
@@ -356,7 +358,7 @@ class AnimatedButton(ctk.CTkButton):
         self.animate(anim_speed)
 
     @staticmethod
-    def import_folders(light, dark, size):
+    def import_folders(light: str, dark: str, size: tuple):
         """
         Import light and dark image sequences
         :param light: relative path to light folder
@@ -394,7 +396,7 @@ class AnimatedButton(ctk.CTkButton):
 
         return ctk_images
 
-    def animate(self, anim_speed):
+    def animate(self, anim_speed: int):
         """
         animates the button
         :param anim_speed: speed of animation
@@ -419,7 +421,7 @@ class AnimatedButton(ctk.CTkButton):
 
 
 class Video(TkinterVideo):
-    def __init__(self, master, video_file_path, end_function=None, **kwargs):
+    def __init__(self, master: ctk.CTk, video_file_path: str, end_function: Callable[[], None] = None, **kwargs):
         super().__init__(master=master, **kwargs)
         # attributes
         self.ended = False

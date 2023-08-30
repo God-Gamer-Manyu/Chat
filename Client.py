@@ -67,14 +67,14 @@ IS_RECEIVING_MESSAGES = True
 
 
 # clamp values
-def clamp(value, min_value, max_value):
+def clamp(value: int, min_value: int, max_value: int):
     return max(min(value, max_value), min_value)
 
 
 class ChatWindow:
     # User message template
     class User(ctk.CTkFrame):
-        def __init__(self, message, message_area: ctk.CTkScrollableFrame, profile_address, mainframe=None):
+        def __init__(self, message: str, message_area: ctk.CTkScrollableFrame, profile_address: str, mainframe: ctk.CTkFrame = None):
             super().__init__(
                 message_area,
                 border_width=1,
@@ -141,7 +141,7 @@ class ChatWindow:
             )
             us_time.grid(row=1, column=1, padx=5, pady=(0, 5), sticky='se')
 
-        def draw_pic(self, file_path, current_time=""):
+        def draw_pic(self, file_path: str, current_time=""):
             """
             Displays the picture which the user had sent
             :param file_path: relative path to store the picture
@@ -221,7 +221,7 @@ class ChatWindow:
 
     # other client message template
     class Cl(ctk.CTkFrame):
-        def __init__(self, message_area, mainframe):
+        def __init__(self, message_area: ctk.CTkFrame, mainframe: ctk.CTkFrame):
             super().__init__(
                 message_area,
                 border_width=1,
@@ -232,15 +232,17 @@ class ChatWindow:
             self.mainframe = mainframe
 
         @staticmethod
-        def un_len_find(username):
-            """Limit username length"""
+        def un_len_find(username: str):
+            """Limit username length
+            :param username: to be limited
+            :return clamped length"""
             mes_len = len(username)
             mes_len = (mes_len * 9) + 10
             mes_len = clamp(mes_len, 5, 100)
             return mes_len
 
         # display other clients message
-        def draw(self, message, username, profile_address=IMAGES['user'], is_private=False, current_time=""):
+        def draw(self, message: str, username: str, profile_address:str = IMAGES['user'], is_private=False, current_time=""):
             """
             Display other clients messages
             :param message:  to be displayed
@@ -326,7 +328,7 @@ class ChatWindow:
             us_txt.grid(row=1, column=2, padx=5, pady=5, sticky='nsew')
             return
 
-        def draw_pic(self, username, file_path, profile_address=IMAGES['user'], is_private=False, current_time=""):
+        def draw_pic(self, username: str, file_path: str, profile_address:str = IMAGES['user'], is_private=False, current_time=""):
             """
             display other user's pictures
             :param username: to be displayed
@@ -334,7 +336,6 @@ class ChatWindow:
             :param profile_address:
             :param is_private:
             :param current_time:
-            :return:
             """
             Utility.SoundManager.play(SOUND_EFFECTS["receive"])
             file_path = STORE_PATH + '/' + file_path
@@ -432,7 +433,7 @@ class ChatWindow:
 
     # class which handles the UI of showing names of other clients in user area
     class OthCLIENT(ctk.CTkFrame):
-        def __init__(self, user_area, clients_widgets):
+        def __init__(self, user_area: ctk.CTkFrame, clients_widgets: dict):
             super().__init__(
                 user_area,
                 width=200,
@@ -444,7 +445,7 @@ class ChatWindow:
             self.pack()
             self.clients_widgets = clients_widgets
 
-        def draw(self, username, profile_address):
+        def draw(self, username: str, profile_address:str):
             """
             displays which and all user has joined the chatroom
             :param username: to be displayed
@@ -476,7 +477,7 @@ class ChatWindow:
             client_name_l.configure(state='disabled')
 
     @staticmethod
-    def send_file(client_socket, file_dir):
+    def send_file(client_socket: socket.socket, file_dir: str):
         """
         Sends file to the server
         :param client_socket:
@@ -504,12 +505,11 @@ class ChatWindow:
             Utility.Message.display('Error occurred while sending picture, please try again', 2)
 
     @staticmethod
-    def receive_file(client_socket, save_file_dir):
+    def receive_file(client_socket: socket.socket, save_file_dir: str):
         """
         Receive file from server
         :param client_socket:
         :param save_file_dir: absolute path to save the picture
-        :return:
         """
         try:
             # receive the picture data
@@ -531,7 +531,7 @@ class ChatWindow:
             print('error receiving pic:-', e)
             Utility.Message.display('Error occurred while receiving picture', 2)
 
-    def setup_client(self, client_socket):
+    def setup_client(self, client_socket: socket.socket):
         """
         setups the client
         :param client_socket:
@@ -577,7 +577,6 @@ class ChatWindow:
             conversation_ser = []
             print('error while receiving prev cons from server:-', e)
 
-        # later: create functionality which will load the latest image of a client (if required, may be done automatically)
         # appending missed conversation which were not saved
         img_not_found = []  # list to store name sof images that are not with the client
         print('to get missing arguments', self.conversation)
@@ -611,15 +610,15 @@ class ChatWindow:
 
     def __init__(
         self,
-        master,
-        name,
-        size_x,
-        size_y,
-        client_socket,
-        profile_address,
-        conversation,
-        history,
-        password,
+        master: ctk.CTkFrame,
+        name: str,
+        size_x: int,
+        size_y: int,
+        client_socket: socket.socket,
+        profile_address: str,
+        conversation: list[dict[str, str]],
+        history: list[tuple[str, str]],
+        password: str,
     ):
         self.abort = False
         self.password = password
@@ -821,7 +820,7 @@ class ChatWindow:
         )
         self.receive_thread.start()
 
-    def receive_messages(self, public_partner):
+    def receive_messages(self, public_partner: rsa.PublicKey):
         """
         Handles incoming messages from the server
         :param public_partner: of the server
@@ -1164,15 +1163,15 @@ class ChatWindow:
 class Client:
     @staticmethod
     def run(
-        root,
-        name,
-        size_x,
-        size_y,
-        close_socket,
-        profile_address,
-        conversation,
-        history,
-        password,
+        root: ctk.CTk,
+        name: str,
+        size_x: int,
+        size_y: int,
+        close_socket: socket.socket,
+        profile_address: str,
+        conversation: list[dict[str, str]],
+        history: list[tuple[str, str]],
+        password: str,
     ):
 
         root.title(f"Intelli Chat - {Utility.FRIEND_CHAT_NAME}")
