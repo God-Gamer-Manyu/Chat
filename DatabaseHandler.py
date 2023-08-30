@@ -38,7 +38,7 @@ class DataBaseHandler:
         pass
 
     @staticmethod
-    def adduser(username, password):
+    def adduser(username: str, password: str):
         """
         Adds the user to the database
         :param username: to be added to the database
@@ -58,7 +58,7 @@ class DataBaseHandler:
             return False, 'Username already in use'
 
     @staticmethod
-    def check_user(username, password):
+    def check_user(username: str, password: str):
         """
         Checks if the user is present and the password is correct
         :param username: to be checked
@@ -77,7 +77,7 @@ class DataBaseHandler:
         return False, 'No user found, please sign up'
 
     @staticmethod
-    def delete_user(username):
+    def delete_user(username : str):
         """Deleting user from database"""
         if cursor is None:
             get_db()

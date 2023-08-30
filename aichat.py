@@ -23,7 +23,7 @@ COLOR = Utility.COLOR
 
 
 # method which gets the output from open AI
-def ask_openai(prompt):
+def ask_openai(prompt: str):
     """
     Get Response from AI Bot
     :param prompt: Message to be asked to the bot
@@ -54,13 +54,13 @@ def ask_openai(prompt):
 
 
 class AiChat:
-    def __init__(self, history):
+    def __init__(self, history: list[tuple[str, str]]):
         if not history:
             self.history = [('Hello, who are you?', "I'm Rohan an AI Assistant. I'm curious to know what your hobbies and interests are, what your goals and aspirations are, and what makes you unique. I'm also interested in learning about your family, your background, and your culture. I'm open to hearing about any experiences you've had that have shaped who you are today.", str(datetime.datetime.now()))]
         else:
             self.history = history
 
-    def chatgpt_clone(self, message):
+    def chatgpt_clone(self, message: str):
         s = []  # storing history as one list
         for i in self.history:  # adding the history
             s.append(i[0])
@@ -78,7 +78,8 @@ class AiChat:
         self.history.append((message, '\n' + output, str(datetime.datetime.now())))   # updating the history
         return self.history  # returning the whole history
 
-    def mainloop(self, app, size_x, size_y, profile_address, username, conversation, password):
+    def mainloop(self, app: ctk.CTk, size_x: int, size_y: int, profile_address: str,
+                 username: str, conversation: list[dict[str, str]], password: str):
         """
         displays the AI window
         :param app: root ctk
@@ -166,7 +167,7 @@ class AiChat:
 
         # User message template
         class User(ctk.CTkFrame):
-            def __init__(self, message):
+            def __init__(self, message: str):
                 super().__init__(
                     message_area,
                     border_width=1,
@@ -226,7 +227,7 @@ class AiChat:
                 )
                 self.pack(anchor='w')
 
-            def draw_from_ques(self, question, history):
+            def draw_from_ques(self, question: str, history: list[tuple[str, str]]):
                 """
                 Display the answer to the given question
                 :param question: to be asked to the AI
@@ -333,7 +334,7 @@ class AiChat:
                 )
                 client_txt.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
 
-            def draw(self, message, current_time):
+            def draw(self, message: str, current_time: str):
                 """
                 Display the message loaded from Previous conversation
                 :param message: to be displayed

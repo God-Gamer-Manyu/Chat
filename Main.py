@@ -66,7 +66,7 @@ public_key, private_key = rsa.newkeys(1024)
 
 
 class Main:
-    def __init__(self, username, conversation, password, profile_address=IMAGES['user'], history=None):
+    def __init__(self, username: str, conversation: list[dict[str, str]], password: str, profile_address: str = IMAGES['user'], history: list[tuple[str, str]] = None):
         # opening the key
         if history is None:
             history = []
@@ -107,7 +107,7 @@ class Main:
         self.conversation = conversation
         self.client_socket: socket.socket = None
 
-    def run(self, app):
+    def run(self, app: ctk.CTk):
         """
         Displays the main window
         :param app: the root tkinter
@@ -243,7 +243,8 @@ class Main:
 
         # The class that defines the sliding setting panel
         class SettingPanel(ctk.CTkFrame):
-            def __init__(self, parent, start_pos, end_pos, main_class_object, bg_li, master, anim_speed=0.008, corner_radius=0):
+            def __init__(self, parent: ctk.CTkFrame, start_pos: int, end_pos: int, main_class_object: Main,
+                         bg_li: ctk.CTkLabel, master: ctk.CTk, anim_speed=0.008, corner_radius=0):
                 """
                 Creates a setting panel in any window
                 :param parent: binding tkinter widget
@@ -346,7 +347,7 @@ class Main:
                 # layout
                 self.place(relx=self.start_pos, rely=0.005, relwidth=self.width, relheight=.985)
 
-            def login(self, main_class_object):
+            def login(self, main_class_object: Main):
                 """
                 Handles login from the settings panel
                 :param main_class_object: the object of Main
@@ -356,7 +357,7 @@ class Main:
                 # call the login frame to enable user to login
                 main_class_object.login(self.bg_li, self.root, False, self)
 
-            def logout(self, main_class_object):
+            def logout(self, main_class_object: Main):
                 """
                 Logs out the user
                 :param main_class_object: the object of Main
@@ -375,7 +376,7 @@ class Main:
                 self.start_animate()
 
             # display elements based on conditions
-            def display_elements_on_cond(self, main_class_object):
+            def display_elements_on_cond(self, main_class_object: Main):
                 """
                 displays login if log in is not done or else display user details
                 :param main_class_object: the object which contains profile picture, username and password
@@ -394,7 +395,7 @@ class Main:
                     # login of not logged in
                     self.setting_login_btn.grid(row=1, column=0, padx=5, pady=5)
 
-            def profile_get(self, main_class_object, img_size: tuple):
+            def profile_get(self, main_class_object: Main, img_size: tuple):
                 """
                 Gets a picture from computer and sets it as the profile picture
                 :param main_class_object: object of the main class
@@ -482,7 +483,7 @@ class Main:
         app.mainloop()
 
     @staticmethod
-    def validate_input(text):
+    def validate_input(text: str):
         """
         Limit the characters to a length specified in the utility
         :param text: the text to limit
@@ -493,7 +494,7 @@ class Main:
         else:
             return False
 
-    def login(self, bg_l1, app, join=True, setting_panel=None):
+    def login(self, bg_l1: ctk.CTkLabel, app: ctk.CTk, join=True, setting_panel=None):
         """
         Performs the login by requesting the server to login, also handles the corresponding UI
         :param bg_l1: BG Image
@@ -743,7 +744,7 @@ class Main:
 
         entry.bind('<Return>', lambda event: enter())  # for enter key
 
-    def sign_up(self, bg_l1, app):
+    def sign_up(self, bg_l1: ctk.CTkLabel, app: ctk.CTk):
         """
         sends request to server to sign up and handles the corresponding UI
         :param bg_l1: BG image
@@ -989,7 +990,7 @@ class Main:
 
     @staticmethod
     # Save U-name password and Also Closes The log console, if not closed
-    def save_login_cred(username, password, profile_address):
+    def save_login_cred(username: str, password: str, profile_address: str):
         """
         save the credentials into an encrypted file
         :param username: The username
