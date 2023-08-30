@@ -1,32 +1,26 @@
 #########################
+# testing purposes don't put in documentation
 from __future__ import print_function
-
 import builtins as __builtin__
 #######################
+# Importing modules
 import os
 import shutil
 import socket
 import threading
 import time
-
 import customtkinter as ctk
 import rsa
 from PIL import Image
 from cryptography.fernet import Fernet
 from customtkinter import filedialog
-
 import Client
 import Utility
 import aichat
 from Utility import DataStorePath
 
+
 # urgent: Remove storage files as it reflects while building exe
-####################
-import ctypes
-
-ctypes.windll.shcore.SetProcessDpiAwareness(2)
-
-
 ##################################
 # testing purposes don't put in documentation
 def print(*args, **kwargs):
@@ -140,7 +134,7 @@ class Main:
         frame.grid_propagate(False)  # Fix the size
 
         #####################################################################
-        '''For Debug purpose'''
+        # testing purposes don't put in documentation
         color = ('#ffffff', '#000000')
         console_checkbox = Utility.LogCollect(bg_l1, 25, 25, color)
         console_checkbox.place(relx=1, rely=1, anchor='se')
@@ -1019,7 +1013,7 @@ class Main:
 
 # main function
 if __name__ == '__main__':
-    # set appearnces
+    # set appearances
     ctk.set_appearance_mode('dark') if Utility.APPEARANCE_MODE == 1 else ctk.set_appearance_mode('light')
     ctk.set_default_color_theme('dark-blue')
 
@@ -1046,7 +1040,6 @@ if __name__ == '__main__':
     # set tkinter window minimum size
     root.minsize(1200, 712)  # the values are adjusted (when tkinter converts it becomes [1500, 890])
 
-    DPI = root.winfo_fpixels('1i')
     main = Main('', [], '')
     root.protocol("WM_DELETE_WINDOW", main.close_window)  # map custom close function to window
 

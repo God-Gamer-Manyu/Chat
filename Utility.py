@@ -1,15 +1,12 @@
 #########################
+# testing purposes don't put in documentation
 from __future__ import print_function
-
 import builtins as __builtin__
 #######################
-
+# Importing modules
 import os
 import threading
-
 import pygame
-# later: comment document and fix light warnings
-###################
 import customtkinter as ctk
 from tkinter import messagebox
 import CTkListbox
@@ -18,10 +15,9 @@ import numpy as np
 from PIL import Image, ImageDraw
 from tkVideoPlayer import TkinterVideo
 
-###################
-
 thread = threading.Thread(target=pygame.mixer.init).start()  # initialising pygame
 
+# Network connection
 HOST = "localhost"
 PORT = 8888
 
@@ -69,47 +65,12 @@ FONT = {
     'error': ('Comic Sans MS', 15)
 }
 BG_VID_PATH = ('Resources/light bg.mp4', 'Resources/dark bg.mp4')  # taking too long to load so not in use
-BG_IMG_SIZE = (1920, 1080)
+BG_IMG_SIZE = (1920, 1080)  # size of the background
 APPEARANCE_MODE = 1  # 0- light, 1- dark
-AI_CHAT_NAME = 'Ask me'
-FRIEND_CHAT_NAME = 'Friend Zone'
-color_palate_light_1 = [
-    '#ECECF4',
-    "#685D82",
-    '#A8A4BB',
-    '#847C9C',
-    '#8C84A0',
-    '#C7C5D7',
-    '#948CA4',
-    '#BCBCCC',
-    '#8C8CA4',
-    '#FCFCFC']
-color_palate_light_2 = [
-    '#2e8cf3',
-    '#ffffff',
-    '#f2f5fa',
-    '#F8FCFF',
-    '#f4f8fb'
-]
-color_palate_dark_1 = [
-    '#242131',
-    '#2567F6',
-    '#BFBEC3',
-    '#0C0C11',
-    '#585E7A',
-    '#77A2F8',
-    '#695952',
-    '#44455A',
-    '#323244',
-    '#51545C'
-]
-color_palate_dark_2 = [
-    '#252331',
-    '#211f2c',
-    '#343145',
-    '#252331',
-    '#2e79fd'
-]
+AI_CHAT_NAME = 'Ask me'  # Name for Ai chatting
+FRIEND_CHAT_NAME = 'Friend Zone'  # Name for chatting with friends
+
+# Colors used in UI elements
 COLOR = {
     'user': {
         'frame-fg': ('#B5D7F3', '#1c497d'),
@@ -162,13 +123,16 @@ U_NAME_CHAR_LEN = 50
 MESSAGE_LINE_LENGTH_CHAT = 16  # word limit
 MESSAGE_LINE_LENGTH_AI = 16  # word limit
 
-collector = []
-console_toggle = False
-load_dotenv()
+
+load_dotenv()  # loading AI API Key
 
 
 ##################################
 # testing purposes don't put in documentation
+collector = []
+console_toggle = False
+
+
 def print(*args, **kwargs):
     # Converting anything other than string to string
     values = []
@@ -214,6 +178,10 @@ class DataStorePath:
 class SoundManager:
     @staticmethod
     def play(address):
+        """
+        Play a sound
+        :param address: Relative path to the sound
+        """
         sound = pygame.mixer.Sound(address)
         sound.play()
 
@@ -222,6 +190,8 @@ class SoundManager:
         pass
 
 
+##################################################
+# For Debugging Purpose don't put in documentation
 class LogCollect(ctk.CTkCheckBox):
     def __init__(self, master, width, height, color, text='', **kwargs):
         super().__init__(
@@ -310,6 +280,7 @@ class LogCollect(ctk.CTkCheckBox):
             if LogCollect.show:
                 LogCollect.show.set(False)
             LogCollect.close()
+############################################################################
 
 
 class Message:
@@ -332,18 +303,26 @@ class Message:
 class Images:
     @staticmethod
     def open_as_circle(filename):
+        """
+        Open Image in circular format
+        :param filename: relative path to the image
+        :return: an Image
+        """
         img = Image.open(filename)
-        img = img.convert('RGB')
+        img = img.convert('RGB')  # remove alpha
         h, w = img.size
 
         # creating luminous image
         lum_img = Image.new('L', [h, w], 0)
         draw = ImageDraw.Draw(lum_img)
         draw.pieslice([(0, 0), (h, w)], 0, 360, fill=255)
-        img_arr = np.array(img)
-        img.close()
         lum_img_arr = np.array(lum_img)
 
+        # converting it to a numpy array
+        img_arr = np.array(img)
+        img.close()
+
+        # Merging image to the mask already created
         final_img_arr = np.dstack((img_arr, lum_img_arr))
         return Image.fromarray(final_img_arr)
 
@@ -377,6 +356,13 @@ class AnimatedButton(ctk.CTkButton):
 
     @staticmethod
     def import_folders(light, dark, size):
+        """
+        Import light and dark image sequences
+        :param light: relative path to light folder
+        :param dark: relative path to dark folder
+        :param size: size of the images
+        :return: array of tuple of light and dark ctk images
+        """
         image_paths = []
         for path in (light, dark):
             ''' 
@@ -408,19 +394,23 @@ class AnimatedButton(ctk.CTkButton):
         return ctk_images
 
     def animate(self, anim_speed):
-        if self.animation_status == 'start':
+        """
+        animates the button
+        :param anim_speed: speed of animation
+        """
+        if self.animation_status == 'start':  # start the animation
             self.frame_index += 1
             self.configure(image=self.frames[self.frame_index])
 
-            if self.frame_index < self.animation_length:
+            if self.frame_index < self.animation_length:  # if animation has ended
                 self.after(anim_speed, lambda: self.animate(anim_speed))
             else:
                 self.animation_status = 'end'
-        if self.animation_status == 'end':
+        if self.animation_status == 'end':  # play the animation ijn reverse
             self.frame_index -= 1
             self.configure(image=self.frames[self.frame_index])
 
-            if self.frame_index > 0:
+            if self.frame_index > 0:  # if animation has ended
                 self.after(anim_speed, lambda: self.animate(anim_speed))
             else:
                 self.animation_status = 'start'
@@ -430,6 +420,7 @@ class AnimatedButton(ctk.CTkButton):
 class Video(TkinterVideo):
     def __init__(self, master, video_file_path, end_function=None, **kwargs):
         super().__init__(master=master, **kwargs)
+        # attributes
         self.ended = False
         self.end_function = end_function
         self.set_resampling_method(1)
@@ -442,6 +433,7 @@ class Video(TkinterVideo):
         self.bg_play()
 
     def video_ended(self):
+        """performs something on video being ended"""
         self.ended = True
         if self.end_function is not None:
             self.end_function()
@@ -449,13 +441,19 @@ class Video(TkinterVideo):
             self.play()
 
     def has_video_end(self):
+        """
+
+        :return: Boolean, True if ended
+        """
         return self.ended
 
     def bg_play(self):
+        """Play the video"""
         self.ended = False
         self.play()
 
     def play_pause(self):
+        """Pause and resume the video"""
         if self.is_paused():
             self.play()
         else:
