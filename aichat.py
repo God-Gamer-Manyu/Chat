@@ -96,6 +96,7 @@ class AiChat:
             """Closes the window"""
             Main.Main.save_login_cred(username, password, profile_address)
             Utility.SoundManager.quit()
+            app.quit()
             app.destroy()
 
         app.protocol("WM_DELETE_WINDOW", close_window)  # binding custom close function

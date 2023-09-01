@@ -199,7 +199,7 @@ class SoundManager:
             except Exception:
                 return
         if is_sound_device_present():  # play sound
-            threading.Thread(target=play_sound, args=(address,)).start()
+            threading.Thread(target=play_sound, args=(address,), daemon=True).start()
 
     @staticmethod
     def quit():
@@ -434,7 +434,7 @@ class AnimatedButton(ctk.CTkButton):
 
 
 class Video(TkinterVideo):
-    def __init__(self, master: ctk.CTk, video_file_path: str, end_function: Callable[[], None] = None, **kwargs):
+    def __init__(self, master: ctk.CTk, video_file_path: str, audio_path: str, end_function: Callable[[], None] = None, **kwargs):
         super().__init__(master=master, **kwargs)
         # attributes
         self.ended = False
@@ -442,6 +442,7 @@ class Video(TkinterVideo):
         self.set_resampling_method(1)
         self.bind("<<Ended>>", lambda event: self.video_ended())
         self.video_file_path = video_file_path
+        self.audio_path = audio_path
         try:
             self.load(video_file_path)
         except Exception as e:
@@ -467,6 +468,7 @@ class Video(TkinterVideo):
         """Play the video"""
         self.ended = False
         self.play()
+        threading.Thread(target=SoundManager.play, args=(self.audio_path,), daemon=True).start()
 
     def play_pause(self):
         """Pause and resume the video"""
