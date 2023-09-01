@@ -7,8 +7,7 @@ import builtins as __builtin__
 import os
 import threading
 from typing import Callable
-
-import pygame
+from playsound import playsound
 import customtkinter as ctk
 from tkinter import messagebox
 import CTkListbox
@@ -16,8 +15,17 @@ from dotenv import load_dotenv
 import numpy as np
 from PIL import Image, ImageDraw
 from tkVideoPlayer import TkinterVideo
+import pyaudio
 
-thread = threading.Thread(target=pygame.mixer.init).start()  # initialising pygame
+
+def is_sound_device_present():
+    try:
+        p = pyaudio.PyAudio()
+        device_count = p.get_device_count()
+        return device_count > 0
+    except Exception:
+        return False
+
 
 # Network connection
 HOST = "localhost"
@@ -185,8 +193,13 @@ class SoundManager:
         Play a sound
         :param address: Relative path to the sound
         """
-        sound = pygame.mixer.Sound(address)
-        sound.play()
+        def play_sound(sound_path):
+            try:
+                playsound(sound_path)
+            except Exception:
+                return
+        if is_sound_device_present():  # play sound
+            threading.Thread(target=play_sound, args=(address,)).start()
 
     @staticmethod
     def quit():
