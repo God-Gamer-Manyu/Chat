@@ -242,7 +242,7 @@ class ChatWindow:
             return mes_len
 
         # display other clients message
-        def draw(self, message: str, username: str, profile_address:str = IMAGES['user'], is_private=False, current_time=""):
+        def draw(self, message: str, username: str, profile_address: str = IMAGES['user'], is_private=False, current_time=""):
             """
             Display other clients messages
             :param message:  to be displayed
@@ -328,7 +328,7 @@ class ChatWindow:
             us_txt.grid(row=1, column=2, padx=5, pady=5, sticky='nsew')
             return
 
-        def draw_pic(self, username: str, file_path: str, profile_address:str = IMAGES['user'], is_private=False, current_time=""):
+        def draw_pic(self, username: str, file_path: str, profile_address: str = IMAGES['user'], is_private=False, current_time=""):
             """
             display other user's pictures
             :param username: to be displayed
@@ -445,7 +445,7 @@ class ChatWindow:
             self.pack()
             self.clients_widgets = clients_widgets
 
-        def draw(self, username: str, profile_address:str):
+        def draw(self, username: str, profile_address: str):
             """
             displays which and all user has joined the chatroom
             :param username: to be displayed
@@ -993,7 +993,7 @@ class ChatWindow:
             global IS_REJOINING
             IS_RECEIVING_MESSAGES = False
             if not IS_REJOINING:
-                threading.Thread(target=self.rejoin_server).start()
+                threading.Thread(target=self.rejoin_server, daemon=True).start()
                 IS_REJOINING = True
             Utility.Message.display('Unable to connect to server', 2)
 
@@ -1029,7 +1029,7 @@ class ChatWindow:
                     IS_REJOINING = False
                     joined = True
                     if not IS_RECEIVING_MESSAGES:  # start receiving messages
-                        threading.Thread(target=self.receive_messages, args=(self.public_partner,)).start()
+                        threading.Thread(target=self.receive_messages, args=(self.public_partner,), daemon=True).start()
                         IS_RECEIVING_MESSAGES = True
                     break
                 except Exception as e:  # print exception
@@ -1140,6 +1140,7 @@ class ChatWindow:
         self.save_files()
         Utility.SoundManager.quit()
         CLIENT_SOCKET.close()
+        self.master.quit()
         self.master.destroy()
 
     def save_files(self):

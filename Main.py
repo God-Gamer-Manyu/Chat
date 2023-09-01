@@ -20,7 +20,6 @@ import aichat
 from Utility import DataStorePath
 
 
-# urgent: Remove storage files as it reflects while building exe
 ##################################
 # testing purposes don't put in documentation
 def print(*args, **kwargs):
@@ -986,6 +985,7 @@ class Main:
         """CLose the main window"""
         # Save the credentials and conversations
         Main.save_login_cred(self.username, self.password, self.profile_address)  # Also Closes The log console, if not closed
+        root.quit()
         root.destroy()
 
     @staticmethod
@@ -1036,7 +1036,7 @@ if __name__ == '__main__':
         main.run(root)
 
     # Intro video
-    intro = Utility.Video(root, 'Resources/Intro.mp4', on_video_end, scaled=True, keep_aspect=False, consistant_frame_rate=True)
+    intro = Utility.Video(root, 'Resources/Intro.mp4', 'Resources/Intro.wav', on_video_end, scaled=True, keep_aspect=False, consistant_frame_rate=True)
     intro.place(relx=0, rely=0, relwidth=1, relheight=1)
     # set tkinter window minimum size
     root.minsize(1200, 712)  # the values are adjusted (when tkinter converts it becomes [1500, 890])
@@ -1060,5 +1060,5 @@ if __name__ == '__main__':
         Utility.FRIEND_IMAGE_SEQUENCE = Utility.AnimatedButton.import_folders(Utility.ANIM_FOLD_PATH['friends'][0], Utility.ANIM_FOLD_PATH['friends'][1], (30, 30))
         Utility.SETTING_IMAGE_SEQUENCE = Utility.AnimatedButton.import_folders(Utility.ANIM_FOLD_PATH['setting'][0], Utility.ANIM_FOLD_PATH['setting'][1], (30, 30))
 
-    threading.Thread(target=get_btn_images).start()
+    threading.Thread(target=get_btn_images, daemon=True).start()
     root.mainloop()
