@@ -434,7 +434,7 @@ class AnimatedButton(ctk.CTkButton):
 
 
 class Video(TkinterVideo):
-    def __init__(self, master: ctk.CTk, video_file_path: str, audio_path: str, end_function: Callable[[], None] = None, **kwargs):
+    def __init__(self, master: ctk.CTk, video_file_path: str, audio_path='', end_function: Callable[[], None] = None, **kwargs):
         super().__init__(master=master, **kwargs)
         # attributes
         self.ended = False
@@ -468,7 +468,8 @@ class Video(TkinterVideo):
         """Play the video"""
         self.ended = False
         self.play()
-        threading.Thread(target=SoundManager.play, args=(self.audio_path,), daemon=True).start()
+        if self.audio_path:
+            threading.Thread(target=SoundManager.play, args=(self.audio_path,), daemon=True).start()
 
     def play_pause(self):
         """Pause and resume the video"""
