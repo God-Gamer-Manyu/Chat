@@ -1036,7 +1036,7 @@ if __name__ == '__main__':
         main.run(root)
 
     # Intro video
-    intro = Utility.Video(root, 'Resources/Intro.mp4', 'Resources/Intro.wav', on_video_end, scaled=True, keep_aspect=False, consistant_frame_rate=True)
+    intro = Utility.Video(root, 'Resources/Intro2.mp4', 'Resources/Intro2.wav', on_video_end, scaled=True, keep_aspect=False, consistant_frame_rate=True)
     intro.place(relx=0, rely=0, relwidth=1, relheight=1)
     # set tkinter window minimum size
     root.minsize(1200, 712)  # the values are adjusted (when tkinter converts it becomes [1500, 890])
