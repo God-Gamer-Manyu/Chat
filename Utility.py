@@ -459,7 +459,7 @@ class Video(TkinterVideo):
 
     def has_video_end(self):
         """
-
+        returns The status of the video
         :return: Boolean, True if ended
         """
         return self.ended
@@ -468,7 +468,7 @@ class Video(TkinterVideo):
         """Play the video"""
         self.ended = False
         self.play()
-        if self.audio_path:
+        if self.audio_path:  # Play audio if externally provided
             threading.Thread(target=SoundManager.play, args=(self.audio_path,), daemon=True).start()
 
     def play_pause(self):
