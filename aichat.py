@@ -1,6 +1,7 @@
 # Importing modules
 import concurrent.futures
 import datetime
+import os
 import time
 import tkinter
 import customtkinter as ctk
@@ -30,9 +31,8 @@ def ask_openai(prompt: str):
     :return: The response of the bot
     """
     try:
-        # imp: uncomment when building exe for actual board practicals
-        # openai.api_key = os.getenv('AI_API_KEY')
-        openai.api_key = 'disabled for testing'
+        openai.api_key = os.getenv('AI_API_KEY')
+        # openai.api_key = 'disabled for testing'
 
         # start_sequence = "\nAI:"
         # restart_sequence = "\nHuman: "
