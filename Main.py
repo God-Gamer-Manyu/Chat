@@ -450,6 +450,7 @@ class Main:
                     self.in_start_pos = False
 
             def animate_backward(self):
+                """Backward animation"""
                 if self.pos < self.start_pos:  # frame has not reached the destination
                     self.pos += self.anim_speed
                     self.place(relx=self.pos, rely=0.005, relwidth=self.width, relheight=.985)
@@ -982,7 +983,7 @@ class Main:
         sign_up_btn.grid(column=0, row=5, sticky='s', pady=5)
 
     def close_window(self):
-        """CLose the main window"""
+        """Close the main window"""
         # Save the credentials and conversations
         Main.save_login_cred(self.username, self.password, self.profile_address)  # Also Closes The log console, if not closed
         root.quit()

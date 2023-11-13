@@ -238,7 +238,7 @@ class ChatRoom:
     @staticmethod
     def receive_file(client_socket: socket.socket, save_file_dir: str):
         """
-        # receive the picture data
+        receive the picture data
         :param client_socket: network connection info from whom the file is being received
         :param save_file_dir: relative path to save file
         """

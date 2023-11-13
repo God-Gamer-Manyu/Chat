@@ -19,6 +19,7 @@ import pyaudio
 
 
 def is_sound_device_present():
+    """Checks the availability of a sound device"""
     try:
         p = pyaudio.PyAudio()
         device_count = p.get_device_count()
@@ -163,6 +164,7 @@ def print(*args, **kwargs):
 class DataStorePath:
     @staticmethod
     def get_appdata():
+        """Gets the data storing path, if not found then creates it"""
         appdata_path = os.getenv('APPDATA')
         path = os.path.join(appdata_path, 'Intelli Chat')  # Generate corresponding path
         print('File stored in', path)  # displaying it for developer to know where it is stored
@@ -303,6 +305,7 @@ class Message:
     @staticmethod
     def display(message: str, message_type: int):
         """
+        Display execution messages
         :param message_type: 0- informative message,1- warning, 2- error
         :param message: use it at the last as it leds to a loop which can hinder other statements
         :return: None
