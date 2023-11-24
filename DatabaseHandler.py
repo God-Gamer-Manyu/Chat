@@ -4,7 +4,7 @@ import pymysql
 from pymysql.cursors import Cursor
 
 # table
-TABLE_NAME = 'User'
+TABLE_NAME = "User"
 
 # database and cursor
 db: pymysql.connect = None
@@ -16,10 +16,10 @@ def get_db():
     global db, cursor
     try:
         db = pymysql.connect(
-            host='localhost',
-            user='Tester',  # 'GodGamer'
-            passwd='Tester@2023',  # 'GodGamerData@2023'
-            database='Chat'
+            host="localhost",
+            user="Tester",  # 'GodGamer'
+            passwd="Tester@2023",  # 'GodGamerData@2023'
+            database="Chat",
         )
         cursor = db.cursor()
         print(type(cursor))
@@ -48,14 +48,19 @@ class DataBaseHandler:
         if cursor is None:
             get_db()
         out = DataBaseHandler.check_user(username, password)
-        if not out[0] and out[1] != 'Password is incorrect':  # check if the user is already added
-            cursor.execute(f'INSERT INTO {TABLE_NAME} (name, pass) VALUES (%s,%s)', (username, password))
-            print(f'{username} added')
+        if (
+            not out[0] and out[1] != "Password is incorrect"
+        ):  # check if the user is already added
+            cursor.execute(
+                f"INSERT INTO {TABLE_NAME} (name, pass) VALUES (%s,%s)",
+                (username, password),
+            )
+            print(f"{username} added")
             db.commit()
-            return True, 'Signed up Successfully'
+            return True, "Signed up Successfully"
         else:  # display username is already present
-            print(f'{username} already in use')
-            return False, 'Username already in use'
+            print(f"{username} already in use")
+            return False, "Username already in use"
 
     @staticmethod
     def check_user(username: str, password: str):
@@ -67,22 +72,22 @@ class DataBaseHandler:
         """
         if cursor is None:
             get_db()
-        cursor.execute(f'SELECT * FROM {TABLE_NAME}')
+        cursor.execute(f"SELECT * FROM {TABLE_NAME}")
         for x in cursor:
             if x[0] == username:  # checking username
                 if x[1] == password:  # checking password
-                    return True, 'All credentials correct'
+                    return True, "All credentials correct"
                 else:
-                    return False, 'Password is incorrect'
-        return False, 'No user found, please sign up'
+                    return False, "Password is incorrect"
+        return False, "No user found, please sign up"
 
     @staticmethod
-    def delete_user(username : str):
+    def delete_user(username: str):
         """Deleting user from database"""
         if cursor is None:
             get_db()
-        cursor.execute(f'DELETE FROM {TABLE_NAME} where name = (%s)', (username,))
-        print(f'{username} deleted')
+        cursor.execute(f"DELETE FROM {TABLE_NAME} where name = (%s)", (username,))
+        print(f"{username} deleted")
         db.commit()
 
     @staticmethod
@@ -90,7 +95,7 @@ class DataBaseHandler:
         """Display the table"""
         if cursor is None:
             get_db()
-        cursor.execute(f'SELECT * FROM {TABLE_NAME}')
+        cursor.execute(f"SELECT * FROM {TABLE_NAME}")
         for x in cursor:
             print(x)
 
@@ -99,13 +104,13 @@ class DataBaseHandler:
         """Clear the table"""
         if cursor is None:
             get_db()
-        cursor.execute(f'SELECT name FROM {TABLE_NAME}')
+        cursor.execute(f"SELECT name FROM {TABLE_NAME}")
         key = []
         for x in cursor:
             key.append(x[0])
-        cursor.executemany(f'DELETE FROM {TABLE_NAME} WHERE name = (%s)', key)
+        cursor.executemany(f"DELETE FROM {TABLE_NAME} WHERE name = (%s)", key)
         db.commit()
-        print(f'Deleted all data from {TABLE_NAME}')
+        print(f"Deleted all data from {TABLE_NAME}")
 
 
 # data = DataBaseHandler()
