@@ -4,7 +4,7 @@ import pymysql
 from pymysql.cursors import Cursor
 
 # table
-TABLE_NAME = "User"
+TABLE_NAME = "User"  # While changing do change even in 'get_db()'
 
 # database and cursor
 db: pymysql.connect = None
@@ -22,13 +22,23 @@ def get_db():
             database="Chat",
         )
         cursor = db.cursor()
+        cursor.execute(
+            f"create table if not exists User(name VARCHAR(50) NOT NULL PRIMARY KEY, pass VARCHAR(50) NOT NULL)"
+        )
         print(type(cursor))
     except Exception as e:
-        print(e)
+        print("Not able to login using 'tester' as user", e)
+        try:
+            db = pymysql.connect(host="localhost", user="root", passwd="root@123")
+            cursor.execute("create database if not exists Chat")
+            cursor.execute(
+                f"create table if not exists User(name VARCHAR(50) NOT NULL PRIMARY KEY, pass VARCHAR(50) NOT NULL)"
+            )
+        except Exception as e:
+            print("Not able to login using 'root' as user", e)
 
 
 threading.Thread(target=get_db).start()
-# cursor.execute('CREATE TABLE User (name VARCHAR(50) NOT NULL PRIMARY KEY, pass VARCHAR(50) NOT NULL)')
 
 
 class DataBaseHandler:
@@ -104,11 +114,7 @@ class DataBaseHandler:
         """Clear the table"""
         if cursor is None:
             get_db()
-        cursor.execute(f"SELECT name FROM {TABLE_NAME}")
-        key = []
-        for x in cursor:
-            key.append(x[0])
-        cursor.executemany(f"DELETE FROM {TABLE_NAME} WHERE name = (%s)", key)
+        cursor.execute(f"DELETE FROM {TABLE_NAME}")
         db.commit()
         print(f"Deleted all data from {TABLE_NAME}")
 
