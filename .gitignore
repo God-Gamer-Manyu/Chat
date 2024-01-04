@@ -7,3 +7,5 @@
 /.env
 /Resources/images/Chat Dark Palette.png
 /Resources/images/Chat Light Palette.png
+/Build/
+/c.txt
