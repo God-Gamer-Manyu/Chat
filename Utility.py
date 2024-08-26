@@ -8,7 +8,8 @@ import builtins as __builtin__
 import os
 import threading
 from typing import Callable
-from playsound import playsound
+from pydub import AudioSegment
+from pydub.playback import play
 import customtkinter as ctk
 from tkinter import messagebox
 import CTkListbox
@@ -224,7 +225,8 @@ class SoundManager:
 
         def play_sound(sound_path):
             try:
-                playsound(sound_path)
+                audio = AudioSegment.from_file(sound_path)
+                play(audio)
             except Exception as e:
                 print("Failed to play sound, Exception", e)
                 return
