@@ -33,13 +33,13 @@ def is_sound_device_present():
 HOST = "localhost"
 PORT = 8888
 
-# Sound effects
+# Sound_effects
 SOUND_EFFECTS = {
-    "join": "Resources/Sound effects/User join.wav",
-    "send": "Resources/Sound effects/send_message.wav",
-    "receive": "Resources/Sound effects/receive message.wav",
-    "error": "Resources/Sound effects/error.wav",
-    "disconnect": "Resources/Sound effects/disconnect.wav",
+    "join": "Resources/Sound_effects/User join.wav",
+    "send": "Resources/Sound_effects/send_message.wav",
+    "receive": "Resources/Sound_effects/receive message.wav",
+    "error": "Resources/Sound_effects/error.wav",
+    "disconnect": "Resources/Sound_effects/disconnect.wav",
 }
 # stored files
 MEMORY = {
@@ -225,7 +225,8 @@ class SoundManager:
         def play_sound(sound_path):
             try:
                 playsound(sound_path)
-            except Exception:
+            except Exception as e:
+                print("Failed to play sound, Exception", e)
                 return
 
         if is_sound_device_present():  # play sound

@@ -15,7 +15,7 @@ import Utility
 FONT = Utility.FONT
 # stored files
 IMAGES = Utility.IMAGES
-# Sound effects
+# Sound_effects
 SOUND_EFFECTS = Utility.SOUND_EFFECTS
 # adjustment variables
 MESSAGE_LINE_LENGTH = Utility.MESSAGE_LINE_LENGTH_AI  # word limit
@@ -34,24 +34,27 @@ def ask_openai(prompt: str):
         api_key = os.getenv("AI_API_KEY")
         # api_key = 'disabled for testing'
 
-        # start_sequence = "\nAI:"
-        # restart_sequence = "\nHuman: "
         client = OpenAI(
             # defaults to os.environ.get("OPENAI_API_KEY")
             api_key=api_key,
         )
 
-        completion = client.chat.completions.create(
+        stream = client.chat.completions.create(
             messages=[
                 {
                     "role": "user",
                     "content": prompt,
                 }
             ],
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini-2024-07-18",
+            stream=True
         )
+        completion = ""
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                completion += chunk.choices[0].delta.content
 
-        return completion.choices[0].message.content
+        return completion
     except Exception as e:
         raise Exception(str(e))
 
