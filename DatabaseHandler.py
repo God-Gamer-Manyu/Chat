@@ -1,11 +1,12 @@
+import os
 import pymysql
 # todo: comment document and fix light warnings
 TABLE_NAME = 'User'
 CHAR_LEN = 50
 db = pymysql.connect(
     host='localhost',
-    user='Tester',  # 'GodGamer'
-    passwd='***REMOVED***',  # '***REMOVED***'
+    user=os.getenv('CHAT_DB_USER', 'root'),
+    passwd=os.getenv('CHAT_DB_PASSWORD', ''),
     database='Chat'
 )
 cursor = db.cursor()

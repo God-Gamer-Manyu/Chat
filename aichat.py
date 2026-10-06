@@ -1,4 +1,5 @@
 # Importing modules
+import os
 import openai
 import datetime
 import customtkinter
@@ -26,8 +27,8 @@ BORDER_PIX = 44
 # method which gets the output from open AI
 def ask_openai(prompt):
     try:
-        # TODO: get new upi and try using env format
-        openai.api_key = "***REMOVED***"
+        # API key is read from the OPENAI_API_KEY environment variable
+        openai.api_key = os.getenv("OPENAI_API_KEY")
 
         # start_sequence = "\nAI:"
         # restart_sequence = "\nHuman: "

@@ -74,11 +74,20 @@ USE Chat;
 CREATE TABLE User (name VARCHAR(50) NOT NULL PRIMARY KEY, pass VARCHAR(50) NOT NULL);
 ```
 
-Update the MySQL host / user / password in `DatabaseHandler.py` to match your server.
+Set the database credentials as environment variables (read by `DatabaseHandler.py`):
+
+```bash
+set CHAT_DB_USER=your_mysql_user          # macOS/Linux: export CHAT_DB_USER=...
+set CHAT_DB_PASSWORD=your_mysql_password
+```
 
 ### 3. Configure the AI key
 
-Put your OpenAI key in `ask_openai()` in `aichat.py`. A better option is to read it from an environment variable such as `os.getenv("OPENAI_API_KEY")`.
+`aichat.py` reads the key from the `OPENAI_API_KEY` environment variable:
+
+```bash
+set OPENAI_API_KEY=sk-...                 # macOS/Linux: export OPENAI_API_KEY=...
+```
 
 ### 4. Run
 
